@@ -1,0 +1,124 @@
+openapi: 3.0.0
+info:
+  title: Macro OAuth
+  description: Macro OAuth
+  version: 1.0.00
+servers:
+- url: /v1/oauth
+# Apply the security globally to all operations
+security:
+  - basicAuth: []
+
+tags:
+  - name: macro-jwt 
+    description: Informacion sobre OAuth de Macro para obtener jwt de acceso.
+
+paths:
+  /access:
+    post:
+      tags:
+        - macro-jwt
+      summary: Obtener access jwt para consumir apis
+      description: Obtener access jwt para consumir apis
+      operationId: jwt
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - grant_type
+                - scope
+              properties:
+                grant_type:
+                  description: El valor ***DEBE*** ser "client_credentials"
+                  type: string
+                  enum:
+                    - client_credentials
+                  example: client_credentials
+                scope:
+                  description: El valor ***DEBE*** ser "openid"
+                  type: string
+                  enum:
+                    - openid
+                  example: openid
+                  
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/token-response' 
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401': 
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500': 
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+
+components:
+  schemas:
+    token-response:
+      type: object
+      properties:
+        access_token:
+          description: El access token generado por el authorization server
+          type: string
+          example: "ZXlKbGJtTWlPaUpCTWpVMlEwSkRMVWhUTlRFeUlpd2lZV3huSWpvaVpHbHlJaXdpWTNSNUlqb2lTbGRVSW4wLi5LV0oyNFF0SlQxOUVuaHowQnNEVHJRLmdQdTZVbkpHVk9mYWFsZmlYZzEyMDlSdGxjb0dTZW41TkIteFJrbVBRVkR5R1NEMVNBcVJQYkN5UV9jckxmdWp2M2hUbmZqOVpNd0phc0pSNVFBakpLZ1hsYmVzX1ExeTJNUWpQaHJtTkYxaW9zV0lfakJEcjgwTm5PdHdFdnRHdlU3bVlPUEVGV0FXdWphWUlWVVVGZWlXNllNWVY5R1IzTnZMc1JBcWxOWEZ1YlA4ZUdvSS1zVXBOUGFjNVViQlVvQWZiWmpNdXVCX182cXZDdE9DTENGZVFYUGNOSXh2blMxTmM2NWpTOEZjc25TeTNIekRKVjFpcWFHRXRfd01xaUdaMUd2Z2NET2pXdkhsOTlvWlF6ZFZRX1VZWmlFUEZHTWVVVUplUlpfNkE0QXpsZVBaQmhnejhrejhnU2NuN2YzNVNEaTFzZXl2YTd3by1Obk02X0xBTEUyeFhaM3MtU0VqdGR0NFJqS2lLLUhNRGUzZE9NNW5sTG0tbEwxSjRfejNsX0V6V3pjbTVFOEJEZFpHMkEwdFF0YkF4dlNRNGxocUdCdXNnNVVBSWNIWEoybkpONUVRalNPR3RvYkp3NExlVTd0N3dTd0pDSE54TzZpZ1p4LXBhRXBUV3J1emdwV0V2WUJFRUx1YW9PaDV5alMxWVhzVWxUQmFjamN5VnVlaVdXNEwxdmtpcDdSd216YkRzMklRNDc3VlA4d1hySlVSZkd0b2lxQXY4SGEyZEVqU3UyWnIxRkRHdlJWZVhEY2RmZGh0Mm9CeUpuRmxlYUtCZDJjUU05VHI5YTVlNUpWQmlIRUpDR0szNGtSTnhRcW8tdlctM0ZhM1g0ME9VSU5nVjZGWlhLZFRaLVQ5NUtfV2dTLTRoOXhoN0JxUC1hV05VdVAxT2pkZFZrWDctQnRld2pMT09ISjFQclhDaEpPNTU1Zkp4MzdVSng1ejFmUU5aVkRWT0JhRWpZdEJXTVI0T2J5R3BSaWRUcE5rRHBic0FPMTYtZ09JbkgwTzBlSWEyMk1fbzV5Q1d2R2c1RklHMkpsaXBWdHdLZ2xBN3o1X1NzMm5CYy14NWpqUWVfc1FkbXE0aXhZc1g1ZzNhTFdPcjNPd1lGd291ZDVXdUEwVzl2YUViNHFrOFRJNF9hMXFvUnQ5UHhJb1RyNy1RekJkSzQ5enNUOWRIZnB0ZXpMM0diQU5pRGM0ZWFpNWZXZy04eWE5OHFDWGVmanBUeWF5dG1GcGpNWkVXQTAtVXAwOXdvZTg3U3VzUjlaejJTZEtFTmNvN18wb09lLV9SdThIblFWMFdMS3RIWkxPT2FNdWJDUnJMbVM0cTdTMW93MlY0MWpEdmszZ3pMeGF0TWU3bm4wT0czb3RDcVppa1VVUUhYZEl1UTBTTUE0VXB6OFI0QXVIeFprLm5EWklPcXljOVRVQW11bGh5c29XQmk4VjNjNV9NT3JkSlh0VkxYUm9mc3c="
+        token_type:
+          description: Tipo de token generado
+          type: string
+          example: Bearer
+        expires_in:
+          description: Tiempo de vida del access token
+          type: integer
+          example: 360
+        scope:
+          description: Scope requerido por el cliente
+          type: string
+          example: 'openid'
+      
+    #----------------------------------------------------------------------------------------------
+    # ERROR
+    #----------------------------------------------------------------------------------------------    
+    error: 
+      type: object
+      properties:
+        Code:
+          type: string
+        Id:
+          type: string
+        Message:
+          type: string
+        Errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errors'
+          
+    errors:
+      type: object
+      properties:
+        ErrorCode:
+          type: string
+        Message:
+          type: string
+        Path:
+          type: string
+
+  securitySchemes:
+    basicAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: basic

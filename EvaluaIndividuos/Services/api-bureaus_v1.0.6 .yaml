@@ -1,0 +1,573 @@
+openapi: 3.0.0
+info:
+  title: Bureaus
+  description: Banco Macro proporciona una API consulta de informacion al Bureaus
+  version: 1.0.6
+  x-ns: customers
+  x-ns-path: /v1/bureaus
+  x-security-type: access
+  
+servers:
+- url: /v1/bureaus
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name:  Bureaus
+    description: Informacion sobre el API MACRO consulta de informacion al Bureaus
+paths:
+#---------------------------------------------------------------------
+# POST - REQUEST- Solicitud de informacion
+#-------------------------------------------------------------------- 
+  /report-request/companies/{company-taxpayer-number}:
+    post:
+      tags:
+        - Bureaus
+      summary: Solicitar informacion de una empresa
+      description: Con este servicio se solicita informacion de una empresa
+      operationId: post-report-request
+      parameters:
+        - name: x-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Id de solicitud de requerimiento
+        - name: x-channel
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+          description: Canal que solicita la informacion
+        - name: x-callback-url
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "https://www.macro.aws.com.ar/api-bureau-respuesta"
+          description: Uri de callback para enviar la informacion
+        - name: company-taxpayer-number
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          examples: 
+            200-OK:
+              value: "20413607835"
+            409-ERR: 
+              value: "20413607899"
+          description: CUIT de la empresa a consultar
+      requestBody:
+        content:
+          application/json:
+            examples:
+              202-409-OK:
+                $ref: '#/components/examples/202-409-post-report-request-OK-request'
+            schema:
+              $ref: '#/components/schemas/post-report-request-request'    
+  
+      responses:
+        '202':
+          description: Acepted
+          content:
+            application/json:
+              examples:
+                202-OK:
+                  $ref: '#/components/examples/202-post-report-request-OK-response'
+              schema:
+                  $ref: '#/components/schemas/post-report-request-response' 
+
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401': 
+          $ref: '#/components/responses/unauthorized'
+        '404': 
+          $ref: '#/components/responses/notFound'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              examples:
+                409-ERR: 
+                  $ref: '#/components/examples/409-post-report-request-ERR-response' 
+              schema:
+                $ref: '#/components/schemas/error'
+        '429': 
+          $ref: '#/components/responses/tooManyRequests'
+        '500': 
+          $ref: '#/components/responses/internalServerError'
+        '502': 
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+  
+  #---------------------------------------------------------------------
+# GET - REQUEST- Solicitud de documentacion
+#-------------------------------------------------------------------- 
+  /documents/companies/{company-taxpayer-number}:
+    get:
+      tags:
+        - Bureaus
+      summary: Consultar un documento de una empresa
+      description: Con este servicio consulta un documento de una empresa
+      operationId: get-documents
+      parameters:
+        - name: x-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Id de solicitud de requerimiento
+        - name: x-channel
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+          description: Canal que solicita la informacion
+        - name: company-taxpayer-number
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          examples: 
+            200-OK:
+              value: "20413607835"
+            409-ERR: 
+              value: "20413607899"
+        - name: origin-request-id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Identificador único de la solicitud (UUID) Utilizado en la consulta de documentos disponibles.
+        - name: document-code
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+          examples: 
+            200-409:
+              value:
+                1
+          description: Codigo de documento
+        - name: bureau-name
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: 
+              - "lufe"
+          examples: 
+            200-409:
+              value:
+                "lufe"
+          description: nombre del bureaus
+        - name: period
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            nullable: true
+          examples: 
+            200-409:
+              value:
+                "2025"
+          description: periodo
+        - name: document-reference
+          in: query
+          required: true
+          schema:
+            type: string
+          examples: 
+            200-409:
+              value:
+                "53187d2f46a37f8ba1a2ce824f657372"
+          description: Identificador único del documento a ser descargado
+  
+      responses:
+        '200':
+          description: Respuesta exitosa
+          headers:
+            content-disposition:
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: string
+                format: binary
+            application/xml:
+              schema:
+                type: string
+                format: binary
+            application/x-www-form-urlencoded:
+              schema:
+                type: string
+                format: binary
+            text/html:
+              schema:
+                type: string
+                format: binary
+            text/xml:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+                format: binary
+
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401': 
+          $ref: '#/components/responses/unauthorized'
+        '404': 
+          $ref: '#/components/responses/notFound'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              examples:
+                409-ERR: 
+                  $ref: '#/components/examples/409-get-documents-ERR-response' 
+              schema:
+                $ref: '#/components/schemas/error'
+        '429': 
+          $ref: '#/components/responses/tooManyRequests'
+        '500': 
+          $ref: '#/components/responses/internalServerError'
+        '502': 
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+          
+components:
+  schemas:
+#-------------------------------------------------------------------
+# POST - REQUEST- Solicitur de informacion
+#-------------------------------------------------------------------
+    
+    post-report-request-request:
+      type: object
+      properties:
+        document-number:
+          type: integer
+          format: int32
+          nullable: true
+          example: 20127361046
+          description: Número de documento del solicitante
+        document-type:
+          type: string
+          nullable: true
+          example: "CUIT"
+          description: Tipo de documento del solicitante
+        full-name:
+          type: string
+          nullable: true
+          example: "Juan Perez"
+          description: Nombre completo del solicitante
+        gender:
+          type: string
+          pattern: '^.{1}$'
+          nullable: true
+          example: "M"
+          description: Sexo del solicitante
+        bureaus:
+          type: array
+          description: Lista de bureaus
+          items:
+            $ref: '#/components/schemas/post-report-request-request-bureaus'
+            
+      required:
+        - bureaus
+   
+    
+    post-report-request-request-bureaus:   
+      type: object
+      properties:
+        name:
+          type: string
+          enum: 
+            - "lufe"
+          example: "lufe"
+          description: nombre del bureaus
+        services:
+          type: array
+          description: Lista de bureaus
+          items:
+            $ref: '#/components/schemas/post-report-request-request-services'  
+            
+      required:
+        - name    
+        - services
+            
+    post-report-request-request-services:
+      type: object
+      properties: 
+        name:
+          type: string
+          example: "autoridades"
+          description: nombre del servicio
+        period:
+          type: string
+          pattern: '^[0-9]{4}$'
+          nullable: true
+          example: "2025"
+          description: periodo
+        document-code:
+          type: integer
+          format: int32
+          nullable: true
+          example: 1
+          description: Id de documento a consultar.
+        cache-policy:
+          $ref: '#/components/schemas/post-report-request-request-services-cache-policy'
+        billing:
+          $ref: '#/components/schemas/post-report-request-request-services-billing'
+        report-format-code:
+          type: string
+          nullable: true
+          example: "PDF"
+          description: Código de formato del reporte
+          
+      required:
+        - name    
+
+    post-report-request-request-services-cache-policy:
+      type: object
+      properties:
+        is-ignored:
+          type: boolean
+          nullable: true
+          example: false
+          description: Indica si se debe ignorar el cache
+        validity-days:
+          type: integer
+          format: int32
+          nullable: true
+          example: 30
+          description: Cantidad de días de vigencia del cache
+
+    post-report-request-request-services-billing:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+          example: "001"
+          description: Código de facturación
+        cost-center-code:
+          type: string
+          nullable: true
+          example: "002"
+          description: Código de centro de costos
+        id-transaction:
+          type: string
+          nullable: true
+          example: "003"
+          description: Identificador de transacción del canal
+        
+        
+        
+#-------------------------------------------------------------------
+# POST - RESPONSE- Solicitur de informacion
+#-------------------------------------------------------------------      
+            
+    post-report-request-response:
+      type: object
+      properties: 
+        request-id:
+          type: string
+          format: uuid
+          nullable: true
+          example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Id de solicitud
+          
+      
+#---------------------------------------------------------------------
+# ERROR
+#---------------------------------------------------------------------    
+    error: 
+      type: object
+      properties:
+        Code:
+          type: string
+          example: "ERR-XXX"
+        Id:
+          type: string
+          example: "81cfc331-5726-42c6-8a95-2700b45ff5d538919"
+        Message:
+          type: string
+          example: "Error message"
+        Errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errors'
+    
+    errors:
+      type: object
+      properties:
+        ErrorCode:
+          type: string
+          example: "ER-XXX"
+        Message:
+          type: string
+          example: "Error message"
+        Path:
+          type: string
+          example: "/v1/accounts/:account-number/movements"
+  
+
+  #-----------------------------------------------------------------
+ 
+  responses:
+    badRequest:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    unauthorized: 
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    notFound: 
+          description: not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    tooManyRequests:
+          description: too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    internalServerError: 
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    badGateway:
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    serviceUnavailable: 
+          description: service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    gatewayTimeout: 
+          description: Gateway Timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+                
+  #----------------------------------------------------------------
+ # Ejemplos
+ #----------------------------------------------------------------
+  examples: 
+  #----------------------------------------------------------------
+    202-409-post-report-request-OK-request:
+      value:
+        document-number: 20127361046
+        document-type: "CUIT"
+        full-name: "Juan Perez"
+        gender: "M"
+        bureaus: 
+        -
+          name: lufe
+          services: 
+            -
+              name: indicadores
+              period: "2025"
+            -
+              name: entidades
+        -
+          name: veraz
+          services:
+            -
+              name: X6
+              billing:
+                code: "001"
+                cost-center-code: "002"
+                id-transaction: "003"
+
+    202-post-report-request-OK-response:
+      value: 
+        request-id: "1fc3b629-cf8e-42ac-9f89-92da324d5f16"
+  
+    409-post-report-request-ERR-response:     
+      value:
+        Code: "ER-409" 
+        Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f134"
+        Message: "cuitInvalido"
+        Errors:
+          - 
+            ErrorCode: "id: 4d3c3de2-7b9f-4c0e-bf6a-4ff45ef2515d"
+            Message: "El cuit informado es inválido"
+            Path: " /v1/bureaus/report-request/companies/..."       
+  
+    409-get-documents-ERR-response:
+      value:
+          Code: "ER-409" 
+          Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f134"
+          Message: "cuitInvalido"
+          Errors:
+            - 
+              ErrorCode: "id: 4d3c3de2-7b9f-4c0e-bf6a-4ff45ef2515d"
+              Message: "El cuit informado es inválido"
+              Path: " /v1/bureaus/report-request/companies/..."    
+        
+            
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

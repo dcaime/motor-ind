@@ -1,0 +1,19 @@
+﻿################################################################################
+# Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/MAPI/.vs/MAPI
+/EvaluaIndividuos/Model/Mocks.cs
+/EvaluaIndividuos/Endpoints/EjecutaPolitica.cs
+/EvaluaIndividuos/Endpoints/ConfirmaLimiteTransitorio.cs
+/CalculadoraAgro/Properties/PublishProfiles/FolderProfile.pubxml
+/CalculadoraAgro/Properties/PublishProfiles/FolderProfile.pubxml.user
+/MAPI/.vs
+
+# Build output
+*.user
+*.suo
+.vs/
+TestResults/
+*.log

@@ -1,0 +1,307 @@
+openapi: 3.0.0
+info:
+  title: CLIENTES-API
+  description: |
+    Servicios de integración para Banco Macro-ESB
+  version: "1.0"
+servers:
+- url: /
+tags:
+- name: Clientes
+  description: Grupo de Ejecución
+paths:
+  /services/Clientes_ConsultaConstanciaInscripcionAFIP/V1/R0:
+    get:
+      tags:
+      - Clientes
+      summary: ConsultaConstanciaInscripcionAFIP
+      description: ConsultaConstanciaInscripcionAFIP
+      operationId: Clientes_ConsultaConstanciaInscripcionAFIP
+      parameters:
+      - name: NumeroTributario
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Response OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConsultaConstanciaInscripcionAFIPResponseType'
+        default:
+          description: Respuesta estándar por errores (técnicos o de negocio)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroresEstandar'
+components:
+  schemas:
+    ActivadesRegimenGeneralResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/ActividadRegimenGeneralResponseType'
+    ActividadMonotributistaResponseType:
+      type: object
+      properties:
+        Descripcion:
+          type: string
+        Id:
+          type: integer
+        Nomenclador:
+          type: integer
+        Orden:
+          type: integer
+        Periodo:
+          type: integer
+    ActividadRegimenGeneralResponseType:
+      type: object
+      properties:
+        Descripcion:
+          type: string
+        Id:
+          type: integer
+        Nomenclador:
+          type: integer
+        Orden:
+          type: integer
+        Periodo:
+          type: integer
+    ActividadesMonotributistasResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/ActividadMonotributistaResponseType'
+    CaracterizacionResponseType:
+      type: object
+      properties:
+        Descripcion:
+          type: string
+        Id:
+          type: integer
+        Periodo:
+          type: integer
+    CaracterizacionesResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/CaracterizacionResponseType'
+    ComponenteSociedadMonotributoResponseType:
+      type: object
+      properties:
+        ApellidoPersonaAsociada:
+          type: string
+        FechaRelacion:
+          type: string
+        FechaVencimiento:
+          type: string
+        IdPersonaAsociada:
+          type: string
+        NombrePersonaAsociada:
+          type: string
+        RazonSocialPersonaAsociada:
+          type: string
+        TipoComponente:
+          type: string
+    ComponentesSociedadesMonotributoResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/ComponenteSociedadMonotributoResponseType'
+    ConsultaConstanciaInscripcionAFIPResponseType:
+      type: object
+      properties:
+        ActivadesRegimenGeneral:
+          $ref: '#/components/schemas/ActivadesRegimenGeneralResponseType'
+        ActividadMonotributistaDescripcion:
+          type: string
+        ActividadMonotributistaId:
+          type: integer
+        ActividadMonotributistaNomenclador:
+          type: integer
+        ActividadMonotributistaOrden:
+          type: integer
+        ActividadMonotributistaPeriodo:
+          type: integer
+        ActividadesMonotributistas:
+          $ref: '#/components/schemas/ActividadesMonotributistasResponseType'
+        Apellido:
+          type: string
+        Caracterizaciones:
+          $ref: '#/components/schemas/CaracterizacionesResponseType'
+        CategoriaAutonomoRegimenGeneralDescripcion:
+          type: string
+        CategoriaAutonomoRegimenGeneralId:
+          type: integer
+        CategoriaAutonomoRegimenGeneralIdImpuesto:
+          type: integer
+        CategoriaAutonomoRegimenGeneralPeriodo:
+          type: integer
+        CategoriaMonotributoDescripcion:
+          type: string
+        CategoriaMonotributoId:
+          type: integer
+        CategoriaMonotributoIdImpuesto:
+          type: integer
+        CategoriaMonotributoPeriodo:
+          type: integer
+        ComponentesSociedadesMonotributo:
+          $ref: '#/components/schemas/ComponentesSociedadesMonotributoResponseType'
+        DependenciaCodigoPostal:
+          type: string
+        DependenciaDescripcion:
+          type: string
+        DependenciaDescripcionProvincia:
+          type: string
+        DependenciaDireccion:
+          type: string
+        DependenciaId:
+          type: integer
+        DependenciaIdProvincia:
+          type: integer
+        DependenciaLocalidad:
+          type: string
+        DomicilioFiscalCodigoPostal:
+          type: string
+        DomicilioFiscalDatoAdicional:
+          type: string
+        DomicilioFiscalDescripcionProvincia:
+          type: string
+        DomicilioFiscalDireccion:
+          type: string
+        DomicilioFiscalIdProvincia:
+          type: integer
+        DomicilioFiscalLocalidad:
+          type: string
+        DomicilioFiscalTipoDatoAdicional:
+          type: string
+        DomicilioFiscalTipoDomicilio:
+          type: string
+        EsSucesion:
+          type: string
+        EstadoClave:
+          type: string
+        FechaContratoSocial:
+          type: string
+        FechaFallecimiento:
+          type: string
+        IdPersona:
+          type: string
+        ImpuestosMonotributo:
+          $ref: '#/components/schemas/ImpuestosMonotributoResponseType'
+        ImpuestosRegimenGeneral:
+          $ref: '#/components/schemas/ImpuestosRegimenGeneralResponseType'
+        MesCierre:
+          type: integer
+        Nombre:
+          type: string
+        RazonSocial:
+          type: string
+        RegimenesGenerales:
+          $ref: '#/components/schemas/RegimenesGeneralesResponseType'
+        TipoClave:
+          type: string
+        TipoPersona:
+          type: string
+    ErroresEstandar:
+      required:
+      - fault
+      type: object
+      properties:
+        fault:
+          type: object
+          properties:
+            code:
+              type: array
+              items:
+                oneOf:
+                - type: string
+                  default: Sender
+                  enum:
+                  - Sender
+                  - Receiver
+                - type: object
+                  properties:
+                    subcode:
+                      type: string
+                      example: "400"
+            detail:
+              $ref: '#/components/schemas/ErroresEstandarDetail'
+            reason:
+              type: string
+              default: ExecutionFailed
+              enum:
+              - Unauthorized
+              - ExecutionFailed
+              - DestinationUnavailable
+              - NotFound
+              - BadRequest
+    ErroresEstandarDetail:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Validation failed
+        source:
+          $ref: '#/components/schemas/ErroresEstandarDetailSource'
+    ErroresEstandarDetailSource:
+      type: object
+      properties:
+        class:
+          type: string
+          example: Clientes_ConsultaConstanciaInscripcionAFIP
+        location:
+          type: string
+          example: ar.com.macro.esb.services.clientes.Clientes_ConsultaConstanciaInscripcionAFIP
+        method:
+          type: string
+          example: Clientes_ConsultaConstanciaInscripcionAFIP_PrepareFaultResponse
+        version:
+          type: string
+          example: "1.0"
+    ImpuestoMonotributoResponseType:
+      type: object
+      properties:
+        Descripcion:
+          type: string
+        Id:
+          type: integer
+        Periodo:
+          type: integer
+    ImpuestoRegimenGeneralResponseType:
+      type: object
+      properties:
+        Descripcion:
+          type: string
+        Id:
+          type: integer
+        Periodo:
+          type: integer
+    ImpuestosMonotributoResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/ImpuestoMonotributoResponseType'
+    ImpuestosRegimenGeneralResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/ImpuestoRegimenGeneralResponseType'
+    RegimenGeneralResponseType:
+      type: object
+      properties:
+        Descripcion:
+          type: string
+        Id:
+          type: integer
+        IdImpuesto:
+          type: integer
+        Periodo:
+          type: integer
+        Tipo:
+          type: string
+    RegimenesGeneralesResponseType:
+      type: array
+      items:
+        $ref: '#/components/schemas/RegimenGeneralResponseType'

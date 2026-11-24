@@ -1,0 +1,20 @@
+def lib1= library (
+    identifier: 'libs-pipelines@main', retriever: modernSCM(
+  [$class: 'GitSCMSource',
+   remote: 'git@SRVCBGIT-TEST.MACRO.COM.AR:DevOps/Pipelines.git',
+   credentialsId: 'jenkins-ssh-key'])
+)
+
+def lib2= library (
+    identifier: 'libs-commons@master', retriever: modernSCM(
+  	[$class: 'GitSCMSource',
+   	remote: 'git@SRVCBGIT-TEST.MACRO.COM.AR:DevOps/devops-library-commons.git',
+   	credentialsId: 'jenkins-ssh-key']))
+
+env.GIT_CFG_REPO = "git@srvcbgit-test:meba/meba-cfg.git" //Repositorio de git donde se encuentran las configuraciones de los ambientes y servicios
+env.GIT_CFG_BRANCH = "main"
+env.GIT_CFG_CREDENTIAL = "git_calificacionconstante" //nombre de credencial Git 
+env.SERVICE_NAME_CFG="EvaluaIndividuos" //Nombre del servicio que se va a buildear y crear manifiestos
+env.COLD_DEPLOY_ENABLED=true
+
+buildOnpremise()

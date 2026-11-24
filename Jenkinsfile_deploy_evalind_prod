@@ -1,0 +1,211 @@
+library identifier: 'libs-soporte@develop', retriever: modernSCM(
+  [$class: 'GitSCMSource',
+   remote: 'git@SRVCBGIT-TEST.MACRO.COM.AR:DevOps/sharedLibrary.git',
+   credentialsId: 'jenkins-ssh-key'])
+   
+pipeline {
+        agent {
+            label 'srvdvto1ap-prod'
+        }
+    
+        environment {
+             //3. NOTIFICATIONS
+           //EMAIL="devopstool_test@macro.com.ar"                                                // CASILLA DESDE DONDE SE ENVIAN LOS MAILS.
+            //SENDTOEMAIL= "federicogarcia@macro.com.ar, agustinawegman@macro.com.ar"                   // DESTINATARIOS DE MAIL 
+
+            CREDENCIAL_NEXUS="Nexus_CalificacionConstante_Prod"
+            
+            CMD="C:\\Program Files\\7-Zip\\7z.exe"
+            SERVICIO="EvaluaIndividuos"
+            SERVER_DESTINO="SRVMEBIWB-PROD"
+            FOLDER_BACKUP="MAPI_Backup"
+
+            FOLDER_DESTINO="MAPI\\Servicios\\${SERVICIO}\\${SERVICIO}"
+
+            PATH_DEPLOY = "prod"            
+            NEXUS_URL="http://172.31.219.113:8081"
+            NEXUS_REPOSITORY="CC_MEBA_Prod"
+            NEXUS_GROUP="EvaluaIndividuos"
+            DESTINO="\\\\${SERVER_DESTINO}\\${FOLDER_DESTINO}"
+            webhookURL="https://chat.googleapis.com/v1/spaces/AAAAvJPchAc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=kQsC8ZYX_Cwcc6LaoV2Rr1jO8BqGG2lUaIHjUeOLacA"
+        }
+        
+        options {
+            buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+        }
+        stages {
+   
+            stage("Env") { 
+                steps {
+                    script {
+                        
+                        env.DEFAULT_SUBJECT="Deploy: Ambiente ${PATH_DEPLOY} - ${SERVICIO}" 
+                        //Configuracion de variables de fecha
+                            def currentDate = new Date()
+                            env.DATE= new java.text.SimpleDateFormat("yyy-MM-dd-HH-mm").format(currentDate)
+                            echo "The formatted current date is: ${DATE}"
+                            env.MONTH= new java.text.SimpleDateFormat("yyy-MM").format(currentDate)
+                            echo "The date MONTH is: ${MONTH}"
+                    }
+                   
+                }
+            }//c_clone_env
+
+           
+            stage("Pull from Nexus-prod"){
+            steps {
+                echo '-------------------------------------------------------'
+                echo '             MenuVersion'
+                echo '-------------------------------------------------------'
+                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                credentialsId: CREDENCIAL_NEXUS,
+                                usernameVariable: 'USER_NAME',
+                                passwordVariable: 'PASSWORD']]){
+                    script{
+                       output = sh (returnStdout: true, script: "curl -X GET -u '${USER_NAME}:${PASSWORD}' '${NEXUS_URL}/service/rest/v1/search?repository=${NEXUS_REPOSITORY}&group=/${NEXUS_GROUP}&direction=desc&sort=name'")                    
+                        echo "${output}"
+                        def properties = readJSON text: output 
+                        VER = properties.items.name.take(8)
+                        timeout(time: 360, unit: 'SECONDS') // PASADOS LOS 60' SE CIERRA EL MENU Y SE ABORTA EL PIPELINE 
+                        {
+                            script{
+                                INPUT_PARAMS = input message: 'Seleccion de version', ok: 'Siguiente',
+                                parameters: [
+                                    choice(name:'VERSIONES_ARTIFACT', choices: VER, description: 'Versiones disponibles')
+                                ]
+                                env.VERSION_SELECCIONADA = "${INPUT_PARAMS}"
+                                echo "'${VERSION_SELECCIONADA}'"
+                                env.FILEZIP = "${VERSION_SELECCIONADA}".split("/")[1]
+                                echo "filezip: ${FILEZIP}"
+                                env.RELEASE="${FILEZIP}"
+                            }
+                        }
+                    } //c.script
+                }
+            } //c.step
+        } //c.stage Pull from nexus
+
+                            
+            stage("backup"){
+                agent {
+                    label 'tool5'
+                }
+                steps{
+                    echo '--------------------------------------'
+                    echo ' Backup     '
+                    echo '--------------------------------------'
+                        script {
+                            
+                            
+                            //Resguardo de archivos -> backup
+                            def backup= "backup_${SERVICIO}_${DATE}"
+                            bat """dir \\\\${SERVER_DESTINO}\\${FOLDER_DESTINO}\\*"""
+                            bat """ "${CMD}" a -r \\\\${SERVER_DESTINO}\\${FOLDER_BACKUP}\\${backup} \\\\${SERVER_DESTINO}\\${FOLDER_DESTINO}\\* -xr!logs\\ -x!Servicios\\ -x!MAPI_Logs """
+                            bat """dir \\\\${SERVER_DESTINO}\\${FOLDER_BACKUP}"""
+                                                                                                                                                                        
+                        }
+                }
+            }
+
+            stage('Delete Old Backup Files') {
+                agent {
+                    label 'tool5'
+                }
+                steps {
+                    script {
+                        def directorio = "\\\\${SERVER_DESTINO}\\${FOLDER_BACKUP}"
+                        def powershellScript = """cd ${directorio} ; Get-ChildItem -Recurse | Where-Object { \$_.LastWriteTime -lt (Get-Date).AddMonths(-6) } | Select-Object -ExpandProperty FullName | Remove-Item -Force"""
+                        bat """powershell.exe -command "${powershellScript}" """                    }
+                }
+            }
+   
+             stage("Download and unzip file"){
+            agent {
+                label 'tool5'
+            }
+            steps {
+                echo '---------------------------------------------'
+                echo '          DownloadZip                        '
+                echo ' --------------------------------------------'
+                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                credentialsId: CREDENCIAL_NEXUS,
+                                usernameVariable: 'USER_NAME',
+                                passwordVariable: 'PASSWORD']]){
+                    script{
+                        bat """curl -u "${USER_NAME}":"${PASSWORD}" -O --output-dir . ${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${VERSION_SELECCIONADA}
+                        """
+                        bat "dir"
+
+                        bat """ "${CMD}" x "${FILEZIP}" -o./latest-scripts -r"""
+                    }
+                }
+            }
+        }
+             stage("Deploy"){
+                 agent {
+                     label 'tool5'
+                 }
+                 steps{
+                    echo '--------------------------------------'
+                    echo ' Copy files to destination server     '
+                    echo '--------------------------------------'
+                    script {
+                        def logFileName = "actual_log.txt"
+                         //Comando robocopy
+                        def robocopyCommand =  " robocopy ./latest-scripts  \\\\${SERVER_DESTINO}\\${FOLDER_DESTINO} /e /r:2 /z /v /move /tee /log+:\\\\${SERVER_DESTINO}\\${FOLDER_BACKUP}\\${MONTH}.log > ${logFileName} 2>&1"
+
+            //                                                                                                 /*/ /e incluye copia de archivos vacios
+            //                                                                                                     /R:2 numero de reintento en las copias con errores. l
+            //                                                                                                     /z si aparecio algún error, lo vuelve a realizar. Restartea la copia de archivos.
+            //                                                                                                     /v genera output y muestra los archivos omitidos también.
+            //                                                                                                     /MOVE una vez copiados, elimina los archivos del origen.
+            //                                                                                                     /tee imprime salida en consola.
+            //                                                                                                     /log+: resguarda histórico de logs en servidor. 
+            //                                                                                                     /log: imprime log actual en un archivo destino.
+            //                                                                                                     /mir espejo. genera que el directorio de destino sea idéntico al de origen. Es decir, replica en el destino lo que hay en el origen.                          
+            //                                                                                                 */
+                        // Ejecutar el comando bat con Robocopy
+                        def exitCode = bat script: robocopyCommand, returnStatus: true
+                        echo "exit robocopy ${exitCode}"
+                        // Comprobar el código de salida y finalizar con éxito si es menor que 8
+                        if (exitCode < 8) {
+                            if (exitCode == 0) {
+                                error "El código de salida de Robocopy es 0 -> No se copiaron archivos. No se encontraron errores. Los archivos ya existen en el directorio de destino, se omitió la operación de copia. Posible error de permisos."
+                                //currentBuild.result = 'FAILURE'
+                            } else {
+                                currentBuild.result = 'SUCCESS'
+                            }
+                        } else {
+                            error "El código de salida de Robocopy es mayor o igual que 8 -> Hubo un error durante la operación de copia."
+                        }
+                        // Archiva el archivo de registro independientemente del resultado.
+                        archiveArtifacts "${logFileName}" 
+                        bat "dir \\\\${SERVER_DESTINO}\\${FOLDER_DESTINO}"                                                                                                                                                   
+                    }
+                }
+            }
+
+
+        }        
+        
+
+        post {
+            always{
+                script{
+                    notifications2.call(webhookURL)
+                    deleteDir()
+                    echo 'Limpiar espacio de trabajo en tool windows'
+                    node('tool5') {
+                        deleteDir()
+                    } 
+
+               }
+            
+            }//c_always
+        }//c_Post
+       
+
+        
+
+}
+

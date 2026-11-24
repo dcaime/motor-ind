@@ -1,0 +1,5170 @@
+openapi: 3.0.0
+info:
+  title: Webhooks
+  description: Banco Macro proporciona una API notificaciones
+  version: 1.9.1
+  x-ns: communications
+  x-ns-path: /v1/webhooks
+servers:
+- url: /v1/issuer_tx_notifications
+- url: /v1/webhooks
+
+security:
+  - api_key: []
+
+tags:
+  - name: Webhooks-Prisma
+    description: Informacion sobre el API MACRO Webhooks-prisma
+  - name: Webhooks-Bureau
+    description: Informa las operaciones de bureau
+  - name: Webhooks-artax
+    description: Informar el resultado del preocesamiento del documento
+  - name: Webhooks-Debit-Card
+    description: Notifica el estado de los servicios envueltos en el flujo de tarjeta de Debito instantanea.
+  - name: Webhooks-terms-conditions
+    description: Notifica que fue firmada la solicitud de terminos y condiciones
+  - name: Webhooks-Veraz
+    description: Informa las operaciones de veraz
+paths:
+#---------------------------------------------------------------------
+# POST - request - Declined Transactions Notifications 
+#-------------------------------------------------------------------- 
+  /declined_transactions/notifications:
+    post:
+      tags:
+        - Webhooks-Prisma
+      summary: Notificacion de operaciones denegadas
+      description: Con este servicio se informan las operaciones denegadas prisma de tarjetas
+      x-security-type: apikey
+      x-url: /v1/issuer_tx_notifications/declined_transactions
+      operationId: post-declined-prisma
+      parameters:
+        - name: x-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Numero de cuenta por la cual se va a consultar
+        - name: X-IV
+          in: header
+          required: false
+          schema:
+            type: string
+            example: ""
+          description: Vector de inicialización para la desencriptación de tarjetas
+      requestBody:
+        content:
+          application/json:
+            examples:
+              200-OK: 
+                $ref: '#/components/examples/webhooks-prisma-post-request-200'
+            schema:
+              $ref: '#/components/schemas/webhooks-prisma-post-request'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              examples:
+                200-OK: 
+                  $ref: '#/components/examples/webhooks-prisma-post-response-200'
+              schema:
+                $ref: '#/components/schemas/webhooks-prisma-post-response' #Idem anterior, sería mas específico en su nombre #OK
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401': 
+          $ref: '#/components/responses/unauthorized'
+        '404': 
+          $ref: '#/components/responses/notFound'
+        '409':
+           $ref: '#/components/responses/conflict'
+        '429': 
+          $ref: '#/components/responses/tooManyRequests'
+        '500': 
+          $ref: '#/components/responses/internalServerError'
+        '502': 
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+
+#---------------------------------------------------------------------
+# POST - request - Approved Transactions Notifications 
+#-------------------------------------------------------------------- 
+  /approved_transactions/notifications:
+    post:
+      tags:
+        - Webhooks-Prisma
+      summary: Notificacion de operaciones aprobadas
+      description: Con este servicio se informan las operaciones aprobadas prisma de tarjetas
+      x-security-type: apikey
+      x-url: /v1/issuer_tx_notifications/approved_transactions
+      operationId: post-approved-prisma
+      parameters:
+        - name: x-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Numero de cuenta por la cual se va a consultar
+        - name: X-IV
+          in: header
+          required: false
+          schema:
+            type: string
+            example: ""
+          description: Vector de inicialización para la desencriptación de tarjetas
+      requestBody:
+        content:
+          application/json:
+            examples:
+              200-OK: 
+                $ref: '#/components/examples/approved-prisma-post-request-200'
+            schema:
+              $ref: '#/components/schemas/approved-prisma-post-request'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              examples:
+                200-OK: 
+                  $ref: '#/components/examples/approved-prisma-post-response-200'
+              schema:
+                $ref: '#/components/schemas/approved-prisma-post-response' #Idem anterior, sería mas específico en su nombre #OK
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401': 
+          $ref: '#/components/responses/unauthorized'
+        '404': 
+          $ref: '#/components/responses/notFound'
+        '409':
+           $ref: '#/components/responses/conflict'
+        '429': 
+          $ref: '#/components/responses/tooManyRequests'
+        '500': 
+          $ref: '#/components/responses/internalServerError'
+        '502': 
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+
+#---------------------------------------------------------------------
+# POST - request - Bureau 
+#-------------------------------------------------------------------- 
+  /bureau:
+    post:
+      tags:
+        - Webhooks-Bureau
+      summary: Notificacion de bureau
+      description: Con este servicio se informan las operaciones de bureau
+      x-security-type: access
+      x-url: /v1/webhooks
+      operationId: post-webhooks-bureau
+      parameters:
+        - name: x-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Numero de cuenta por la cual se va a consultar
+        - name: x-channel
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+          description: Canal que solicita la informacion
+        - name: x-callback-url
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "https://www.macro.aws.com.ar/api-bureau-respuesta"
+          description: Uri de callback para enviar la informacion
+        - name: apikey
+          in: header
+          required: false
+          schema:
+            type: string
+            nullable: true
+            example: "oaZd3f48i7TyWI7CkBFQ5ipxGHsPshm3QQfPFKUPvEHxxxxxx"
+      requestBody:
+        content:
+          application/json:
+            examples:
+              202-TOTAL: 
+                $ref: '#/components/examples/webhooks-bureau-post-request-200-total'
+              202-PARCIAL: 
+                $ref: '#/components/examples/webhooks-bureau-post-request-200-parcial'
+              409-ERR: 
+                $ref: '#/components/examples/webhooks-bureau-post-request-409'  
+            schema:
+             $ref: '#/components/schemas/webhooks-bureau-post-request'
+
+
+      responses:
+        '202':
+          description: Accepted 
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401': 
+          $ref: '#/components/responses/unauthorized'
+        '404': 
+          $ref: '#/components/responses/notFound'
+        '409':
+          description: Business conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                409-conflict-error:
+                  $ref: '#/components/examples/webhooks-bureau-post-response-409'
+        '429': 
+          $ref: '#/components/responses/tooManyRequests'
+        '500': 
+          $ref: '#/components/responses/internalServerError'
+        '502': 
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+    #-----------------------------------------------------------------
+    #-----------------------------------------------------------------
+    # POST - request Webhooks Veraz - 
+    #-----------------------------------------------------------------
+  /veraz:
+    post:
+      tags:
+        - Webhooks-Veraz
+      summary: Notificacion de bureau Veraz
+      description: Con este servicio se informa el resultado del procesamiento del bureau Veraz
+      x-security-type: access
+      x-url: /v1/webhooks
+      operationId: post-webhooks-veraz
+      parameters:
+        - name: x-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "f61c2780-1f91-48f8-aed7-e687b4c617df"
+          description: Identificador único de la solicitud o petición.
+        - name: x-callback-url
+          in: header
+          required: true
+          schema:
+            type: string
+          examples:
+              200-OK:
+                value: "https://www.macro.aws.com.ar/api-bureau-respuesta-OK"
+              409-ERR:
+                value: "https://www.macro.aws.com.ar/api-bureau-respuesta-ERROR"
+          description: Uri de callback para enviar la informacion
+        - name: apikey
+          in: header
+          required: false
+          schema:
+            type: string
+            nullable: true
+            example: "oaZd3f48i7TyWI7CkBFQ5ipxGHsPshm3QQfPFKUPvEHxxxxxx"
+          description: Apikey del consumidor
+      requestBody:
+        content:
+          application/json:
+            examples:
+              202-OK:
+                $ref: '#/components/examples/webhooks-veraz-post-request'
+              409--error:
+                $ref: '#/components/examples/webhooks-veraz-post-request'
+            schema:
+              $ref: '#/components/schemas/webhooks-veraz-post-request'
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          description: Business conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                409-conflict-error:
+                  $ref: '#/components/examples/webhooks-veraz-post-response-409'
+        '429':
+          $ref: '#/components/responses/tooManyRequests'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+        '502':
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+
+    # POST - request Webhooks Artax - 
+    #-----------------------------------------------------------------
+  /artax:
+      post: 
+        tags:
+          - Webhooks-artax
+        summary: Notificacion de artax
+        description: Con este servicio se informan el resultado del preocesamiento del documento
+        x-security-type: token
+        x-url: /v1/webhooks
+        operationId: post-webhooks-artax
+        parameters:
+            - in: header
+              name: x-request-id
+              required: true
+              schema:
+                type: string
+                format: uuid
+                description: Identificador único de la petición
+                example: "123e4567-e89b-12d3-a456-426614174000"
+            - in: header
+              name: apikey
+              required: true
+              schema:
+                type: string
+                description: Clave de acceso a la API
+                example: ""
+        requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/lectura-documentos-post-request'
+                examples:
+                  200-OK: 
+                    $ref: '#/components/examples/lectura-documentos-post-request-200'
+        responses:
+          '200':
+            description: successful operation
+            content:
+              application/json:
+                examples:
+                  200-OK: 
+                    $ref: '#/components/examples/lectura-documentos-post-reponse-200'
+                schema:
+                  $ref: '#/components/schemas/lectura-documentos-post-reponse'
+
+  #-----------------------------------------------------------------
+  # POST - request Webhooks Debit-Card - 
+  #-----------------------------------------------------------------
+  /debit-card/issuances:
+      post: 
+        tags:
+          - Webhooks-Debit-Card
+        summary: Notificacion de proceso de Alta de tarjeta de debito
+        description: Servicio que notifica el estado de los servicios envueltos en el flujo de tarjeta de Debito instantanea.
+        x-security-type: access
+        x-url: /v1/webhooks
+        operationId: post-debit-card
+        parameters:
+            - in: header
+              name: x-request-id
+              required: true
+              schema:
+                type: string
+                format: uuid
+                pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+                description: Identificador único de la petición
+                example: "123e4567-e89b-12d3-a456-426614174000"
+            - name: x-callback-url
+              in: header
+              required: true
+              schema:
+                type: string
+                example: "https://www.macro.aws.com.ar/api--respuesta"
+              description: Uri de callback para enviar la informacion
+            - name: apikey
+              in: header
+              required: false
+              schema:
+                type: string
+                nullable: true
+                example: "oaZd3f48i7TyWI7CkBFQ5ipxGHsPshm3QQfPFKUPvEHxxxxxx"
+            - in: header
+              name: x-customer-id
+              required: false
+              schema:
+                type: integer
+                format: int32
+                nullable: true
+                example: 123000
+                description: Identificador único de la petición
+        requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/post-debit-card-request'
+                examples:
+                  201-OK: 
+                    $ref: '#/components/examples/post-debit-card-201-request'
+                  409-OK: 
+                    $ref: '#/components/examples/post-debit-card-409-request'
+        responses:
+          '201':
+            description: Created
+          '400':
+            $ref: '#/components/responses/badRequest'
+          '401': 
+            $ref: '#/components/responses/unauthorized'
+          '404': 
+            $ref: '#/components/responses/notFound'
+          '409':
+            description: Business conflict
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/error'
+                examples:
+                  409-conflict-error:
+                    $ref: '#/components/examples/post-debit-card-409-response'
+          '429': 
+            $ref: '#/components/responses/tooManyRequests'
+          '500': 
+            $ref: '#/components/responses/internalServerError'
+          '502': 
+            $ref: '#/components/responses/badGateway'
+          '503':
+            $ref: '#/components/responses/serviceUnavailable'
+          '504':
+            $ref: '#/components/responses/gatewayTimeout'
+
+#-----------------------------------------------------------------------
+# post-terms-conditions	
+#-----------------------------------------------------------------------
+
+  /terms-conditions:
+      post: 
+        tags:
+          - Webhooks-terms-conditions
+        summary: Notificacion de firma 
+        description: Con este servicio se informan el resultado del preocesamiento del documento
+        x-security-type: access
+        x-url: /v1/webhooks
+        operationId: post-terms-conditions
+        parameters:
+            - in: header
+              name: x-request-id
+              required: true
+              schema:
+                type: string
+                format: uuid
+                description: Identificador único de la petición
+                example: "123e4567-e89b-12d3-a456-426614174000"
+            - in: header
+              name: apikey
+              required: true
+              schema:
+                type: string
+                description: Clave de acceso a la API
+                example: ""
+            - in: header
+              name: x-callback-url
+              required: true
+              schema:
+                type: string
+                description: URL de destino del Webhook.
+                example: "https://artax.com.ar/webhook"
+        requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/terms-conditions-post-request'
+        responses:
+          '202':
+            description: Accepted 
+
+components:
+  schemas:
+    #-----------------------------------------------------------------
+    # POST - request - Declined Transactions Notifications 
+    #-----------------------------------------------------------------
+    webhooks-prisma-post-request:
+      type: object
+      properties:
+        card:
+          type: object
+          properties: 
+            identification_type:
+              type: string 
+              enum: 
+                - "CI"
+                - "DNI"
+                - "CUIT"
+                - "LC"
+                - "LE"
+                - "PS"
+                - "DNRP"
+                - "OTROS"
+                - "DESCONOCIDO"
+              description: Tipo de documento
+            identification_number:
+              oneOf: 
+                - type: string
+                  nullable: true
+                  example: ""
+                - type: integer
+                  nullable: true
+                  example: 
+              description: Numero de documento
+            gender:
+              type: string
+              enum: 
+                - "F"
+                - "M"
+                - "X"
+              example: "F"
+              description: Genero
+            bin:
+              type: string
+              pattern: '^([0-9]{6}|[0-9]{8})?$'
+              example: ""
+              description: Codigo de bin de la tarjeta
+            last_four_digits:
+              type: string
+              pattern: '^([0-9]{4})?$'
+              example: ""
+              description: Ultimos cuatro digitos de la tarjeta
+            encrypted_card_number:
+              type: string
+              format: byte
+              example: ""
+              description: Numero de tarjeta encriptado
+            brand:
+              type: string
+              enum: 
+                - "VI-CR"
+                - "VI-RE"
+                - "AM-CR"
+                - "MC-CR"
+                - "MP-CR"
+                - "VI-BC"
+                - "PR-PR"
+                - "VI-DB"
+                - "UNKNOWN"
+              example: "VI-CR"
+              description: Tipo de tarjeta de credito
+          required: 
+            - identification_type
+            - identification_number
+            - gender
+            - bin
+            - last_four_digits
+            - encrypted_card_number
+            - brand
+        transaction:
+          type: object
+          properties: 
+            type:
+              type: string
+              enum: 
+                - "PURCHASE"
+                - "ADVANCE"
+                - "REFUND"
+                - "CASHBACK"
+                - "PIN_CHANGE_ATM"
+                - "VERIFICATION"
+                - "INQUIRY_BY_ATM"
+                - "ADJUSTMENT"
+                - "RECHARGE_BY_ATM"
+                - "CANCELLATION_OF_PAYMENT"
+                - "PAYMENT_BY_ATM"
+                - "PAYMENT"
+                - "AUTOMATIC_DEBIT_INTERNATIONAL"
+                - "AUTOMATIC_DEBIT_NATIONAL"
+                - "OTHERS"
+              example: "OTHERS"
+              description: Tipo de transaccion
+            date_transaction:
+              type: string
+              pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$'
+              example: ""
+              description: Fecha de transaccion
+            authorization_code:
+              type: string
+              example: ""
+              description: Codigo de autorizacion
+            authorization_description:
+              type: string
+              enum: 
+                - "EXTERNAL-RISK-MANAGEMENT"
+                - "RISK-MANAGEMENT"
+                - "INSUFFICIENT-FUNDS"
+                - "CARD-RULE-DENIAL"
+                - "CARD-RELATED-ISSUE"
+                - "EXPIRED-CARD"
+                - "CONTACT-ACQUIRER"
+                - "RESTRICTED-CARD"
+                - "MAXIMUM-ATTEMPTS-ALLOWED"
+                - "CONTACT-ISSUER"
+                - "INVALID-MERCHANT"
+                - "ERROR-AMOUNT"
+                - "ERROR-CVV"
+                - "PIN-REQUIRED"
+                - "UNACCEPTABLE-FEE"
+                - "ERROR-FUNCTION"
+                - "WRONG-PIN"
+                - "CARD-ERROR"
+                - "TERMINAL-ERROR"
+                - "ERROR-LIMIT"
+                - "SECURITY-PROBLEM"
+                - "VENDOR-ERROR"
+                - "OTHERS"
+              example: "OTHERS"
+              description: Descripcion autorizacion
+            open_description:
+              type: string
+              example: ""
+              description: Informacion adicional sobre el codigo de autorizacion
+            brand_authorization_code:
+              type: string
+              example: ""
+              description: Codigo de autorización proporcionado por la marca
+            origin_currency:
+              type: string
+              example: ""
+              description: Moneda origen
+            origin_amount:
+              type: string
+              example: ""
+              description: Monto de la transaccion
+            domestic_currency:
+              type: string
+              example: ""
+              description: Moneda en la que se procesó la transacción
+            domestic_amount:
+              type: string
+              example: ""
+              description: Monto en la moneda en la que se procesó la transacción
+            number_authorization:
+              type: string
+              example: ""
+              description: Numero de autorizacion
+            quantity_installments:
+              type: string
+              example: ""
+              description: Cantidad de cuotas de la transacción.
+            issuing_bank_code:
+              type: string
+              example: ""
+              description: Banco del titular de la tarjeta.
+            presence_mark:
+              type: boolean
+              example: true
+              description: Indica si la compra se realizó en persona.
+            input_method:
+              type: string
+              enum: 
+                - "UNIDENTIFIED"
+                - "MANUAL"
+                - "MAGSTRIPE"
+                - "CHIP"
+                - "CONTACTLESS"
+                - "ECOMMERCE"
+                - "UNKNOWN"
+                - "NFC"
+              example: "MANUAL"
+              description: Tipo de entrada de pago se utilizó en la transacción
+            wallet_id_mc:
+              type: string
+              example: ""
+              description: Identificador único de billetera Mastercard
+            wallet_id_visa:
+              type: string
+              example: ""
+              description: Identificador único de billetera Visa.
+            qr_mark:
+              type: string
+              example: ""
+              description: Indicar si es una compra QR o no.
+            qr_mark_payway:
+              type: string
+              example: ""
+              description: Indicar si es una compra QR para Payway o no.
+            wallet_id_payway:
+              type: string
+              example: ""
+              description: Identificador único de billetera Payway.
+            token_requestor_id:
+              type: string
+              example: ""
+              description: Identificador único de solicitante de token.
+            transaction_id:
+              type: string
+              example: ""
+              description: Identificador único
+            eci_moto:
+              type: string
+              example: "00"
+              description: Campo utilizado para la identificación de transacciones autenticadas
+            3ds_indicator:
+              type: string
+              example: "00"
+              description: Identificador del método de autenticación
+            daf:
+              type: string
+              example: ""
+              description: Es un indicador utilizado por las marcas de tarjetas
+            stip:
+              type: string
+              example: "    "
+              description: Un modo de autorización en el cual la red de la tarjeta (Visa).
+          required: 
+            - type
+            - date_transaction
+            - authorization_code
+            - authorization_description
+            - open_description
+            - origin_currency
+            - origin_amount
+            - domestic_currency
+            - domestic_amount
+            - number_authorization
+            - quantity_installments
+            - issuing_bank_code
+            - presence_mark
+            - input_method
+            - wallet_id_mc
+            - wallet_id_visa
+            - qr_mark
+            - qr_mark_payway
+            - wallet_id_payway
+            - token_requestor_id
+            - transaction_id
+        establishment:
+          type: object
+          properties: 
+            establishment_number:
+              type: string
+              example: ""
+              description: Número de establecimiento
+            establishment_country:
+              type: string
+              example: ""
+              description: País donde está ubicado el establecimiento
+            establishment_description:
+              type: string
+              example: ""
+              description: Descripción del establecimiento.
+            establishment_category_local:
+              type: string
+              example: ""
+              description: Id. de categoría de actividad comercial local.
+            establishment_category_international:
+              type: string
+              example: ""
+              description: Categoría de actividad comercial internacional
+            acquiring_processor:
+              type: string
+              example: ""
+              description: Procesador adquirente de transacciones
+            terminal_id:
+              type: string
+              example: ""
+              description: Id de la terminal
+            acquiring_processor_id:
+              type: string
+              example: ""
+              description: ID del BIN descripcion
+          required: 
+            - establishment_number
+            - establishment_country
+            - establishment_description
+            - establishment_category_local
+            - establishment_category_international
+            - acquiring_processor
+            - terminal_id
+      
+      required: 
+            - card
+            - transaction
+            - establishment
+
+    #-----------------------------------------------------------------
+    # POST - request - Approved Transactions Notifications 
+    #-----------------------------------------------------------------
+    approved-prisma-post-request:
+      type: object
+      properties:
+        card:
+          type: object
+          properties: 
+            identification_type:
+              type: string 
+              enum: 
+                - "CI"
+                - "DNI"
+                - "CUIT"
+                - "LC"
+                - "LE"
+                - "PS"
+                - "DNRP"
+                - "OTROS"
+                - "DESCONOCIDO"
+              description: Tipo de documento
+            identification_number:
+              oneOf: 
+                - type: string
+                  nullable: true
+                  example: ""
+                - type: integer
+                  nullable: true
+                  example: 
+              description: Numero de documento
+            gender:
+              type: string
+              enum: 
+                - "F"
+                - "M"
+                - "X"
+              example: "F"
+              description: Genero
+            bin:
+              type: string
+              pattern: '^([0-9]{6}|[0-9]{8})?$'
+              example: ""
+              description: Codigo de bin de la tarjeta
+            last_four_digits:
+              type: string
+              pattern: '^([0-9]{4})?$'
+              example: ""
+              description: Ultimos cuatro digitos de la tarjeta
+            encrypted_card_number:
+              type: string
+              format: byte
+              example: ""
+              description: Numero de tarjeta encriptado
+            brand:
+              type: string
+              enum: 
+                - "VI-CR"
+                - "VI-RE"
+                - "AM-CR"
+                - "MC-CR"
+                - "MP-CR"
+                - "VI-BC"
+                - "PR-PR"
+                - "VI-DB"
+                - "UNKNOWN"
+              example: "VI-CR"
+              description: Tipo de tarjeta de credito
+          required: 
+            - identification_type
+            - identification_number
+            - gender
+            - bin
+            - last_four_digits
+            - encrypted_card_number
+            - brand
+        transaction:
+          type: object
+          properties: 
+            type:
+              type: string
+              enum: 
+                - "PURCHASE"
+                - "ADVANCE"
+                - "REFUND"
+                - "CASHBACK"
+                - "PIN_CHANGE_ATM"
+                - "VERIFICATION"
+                - "INQUIRY_BY_ATM"
+                - "ADJUSTMENT"
+                - "RECHARGE_BY_ATM"
+                - "CANCELLATION_OF_PAYMENT"
+                - "PAYMENT_BY_ATM"
+                - "PAYMENT"
+                - "AUTOMATIC_DEBIT_INTERNATIONAL"
+                - "AUTOMATIC_DEBIT_NATIONAL"
+                - "OTHERS"
+              example: "OTHERS"
+              description: Tipo de transaccion
+            date_transaction:
+              type: string
+              pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$'
+              example: ""
+              description: Fecha de transaccion
+            authorization_code:
+              type: string
+              example: "APPROVED"
+              description: Codigo de autorizacion
+            authorization_description:
+              type: string
+              enum: 
+                - "TRANSACTION-APPROVED"
+                - "TRANSACTION-REVERSED"
+              example: "TRANSACTION-APPROVED"
+              description: Descripcion autorizacion
+            open_description:
+              type: string
+              example: ""
+              description: Informacion adicional sobre el codigo de autorizacion
+            brand_authorization_code:
+              type: string
+              example: ""
+              description: Codigo de autorización proporcionado por la marca
+            origin_currency:
+              type: string
+              example: ""
+              description: Moneda origen
+            origin_amount:
+              type: string
+              example: ""
+              description: Monto de la transaccion
+            domestic_currency:
+              type: string
+              example: ""
+              description: Moneda en la que se procesó la transacción
+            domestic_amount:
+              type: string
+              example: ""
+              description: Monto en la moneda en la que se procesó la transacción
+            number_authorization:
+              type: string
+              example: ""
+              description: Numero de autorizacion
+            quantity_installments:
+              type: string
+              example: ""
+              description: Cantidad de cuotas de la transacción.
+            issuing_bank_code:
+              type: string
+              example: ""
+              description: Banco del titular de la tarjeta.
+            presence_mark:
+              type: boolean
+              example: true
+              description: Indica si la compra se realizó en persona.
+            input_method:
+              type: string
+              enum: 
+                - "UNIDENTIFIED"
+                - "MANUAL"
+                - "MAGSTRIPE"
+                - "CHIP"
+                - "CONTACTLESS"
+                - "ECOMMERCE"
+                - "UNKNOWN"
+                - "NFC"
+              example: "MANUAL"
+              description: Tipo de entrada de pago se utilizó en la transacción
+            wallet_id_mc:
+              type: string
+              example: ""
+              description: Identificador único de billetera Mastercard
+            wallet_id_visa:
+              type: string
+              example: ""
+              description: Identificador único de billetera Visa.
+            qr_mark:
+              type: string
+              example: ""
+              description: Indicar si es una compra QR o no.
+            qr_mark_payway:
+              type: string
+              example: ""
+              description: Indicar si es una compra QR para Payway o no.
+            wallet_id_payway:
+              type: string
+              example: ""
+              description: Identificador único de billetera Payway.
+            token_requestor_id:
+              type: string
+              example: ""
+              description: Identificador único de solicitante de token.
+            transaction_id:
+              type: string
+              example: ""
+              description: Identificador único
+            eci_moto:
+              type: string
+              example: "00"
+              description: Campo utilizado para la identificación de transacciones autenticadas
+            3ds_indicator:
+              type: string
+              example: "00"
+              description: Identificador del método de autenticación
+            daf:
+              type: string
+              example: ""
+              description: Es un indicador utilizado por las marcas de tarjetas
+            extracash_amount:
+              type: string
+              example: ""
+              description: Representa el monto del cashback (devolución de efectivo).
+            
+          required: 
+            - type
+            - date_transaction
+            - authorization_code
+            - authorization_description
+            - open_description
+            - origin_currency
+            - origin_amount
+            - domestic_currency
+            - domestic_amount
+            - number_authorization
+            - quantity_installments
+            - issuing_bank_code
+            - presence_mark
+            - input_method
+            - wallet_id_mc
+            - wallet_id_visa
+            - qr_mark
+            - qr_mark_payway
+            - wallet_id_payway
+            - token_requestor_id
+            - transaction_id
+        establishment:
+          type: object
+          properties: 
+            establishment_number:
+              type: string
+              example: ""
+              description: Número de establecimiento
+            establishment_country:
+              type: string
+              example: ""
+              description: País donde está ubicado el establecimiento
+            establishment_description:
+              type: string
+              example: ""
+              description: Descripción del establecimiento.
+            establishment_category_local:
+              type: string
+              example: ""
+              description: Id. de categoría de actividad comercial local.
+            establishment_category_international:
+              type: string
+              example: ""
+              description: Categoría de actividad comercial internacional
+            acquiring_processor:
+              type: string
+              example: ""
+              description: Procesador adquirente de transacciones
+            terminal_id:
+              type: string
+              example: ""
+              description: Id de la terminal
+            acquiring_processor_id:
+              type: string
+              example: ""
+              description: ID del BIN descripcion
+          required: 
+            - establishment_number
+            - establishment_country
+            - establishment_description
+            - establishment_category_local
+            - establishment_category_international
+            - acquiring_processor
+            - terminal_id
+      
+      required: 
+            - card
+            - transaction
+            - establishment
+
+  #-----------------------------------------------------------------
+  # POST - request - Notifications 
+  #-----------------------------------------------------------------            
+    webhooks-bureau-post-request:  
+      type: object
+      properties:
+        status-code:
+          type: string
+          example: "OK"
+          description: Estado del resultado de una solicitud.
+        request-id:
+          type: string
+          example: "1"
+          description: Identificador único de la solicitud 
+        taxpayer-number:
+          type: string
+          pattern: '^(20|23|24|25|26|27|30|33|34)\d{9}$'
+          example: "20123456789"
+          description: Identificador único CUIT 
+        bureau:
+          type: string
+          example: "lufe"
+          description: Entidad u organismo que gestiona o emite datos de la entidad.
+        service:
+          $ref: '#/components/schemas/bureau-post-request-service-data'
+        error:
+          $ref: '#/components/schemas/bureau-post-request-errors-data'
+      required:
+        - status-code
+        - request-id   
+        - taxpayer-number
+        - bureau
+          
+    bureau-post-request-service-data:
+      type: object
+      properties:
+        debt:
+          type: object
+          properties:
+            has-tax-social-security-debt:
+              type: boolean
+              nullable: true
+              example: true
+              description: Si tiene deudas que tiene una empresa o empleador con organismos del estado
+            has-social-security-debt:
+              type: boolean
+              nullable: true
+              example: true
+              description: Responsabilidades que la empresa no cumplio 
+            details:
+              type: array
+              description: Lista de deudas
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-debt-details-data'
+          required:
+            - has-tax-social-security-debt
+            - has-social-security-debt
+            - details
+        company:
+          type: object
+          properties:
+            legal-name:
+              type: string
+              nullable: true
+              example: null
+              description: Nombre legal o razón social de la entidad.
+            tax-registered-address:
+              type: string
+              nullable: true
+              example: null
+              description:  Dirección fiscal registrada de la entidad.
+            primary-activity:
+              type: object
+              properties:
+                code:
+                  type: string
+                  nullable: true
+                  pattern: '^\d*$'
+                  example: null
+                  description: Código que identifica la actividad principal.
+                description:
+                  type: string
+                  nullable: true
+                  example: null
+                  description: Descripción detallada de la actividad principal.
+              required:
+                - code
+                - description
+            legal-entity:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: 1
+                  description: Código identificador de la forma jurídica de la entidad.
+                description:
+                  type: string
+                  example: "Sociedad Civil"
+                  description: Descripción asociada al código de la forma jurídica.
+            legal-status:
+              type: string
+              nullable: true
+              example: null
+              description: Tipo de personería de la entidad.
+            registration-date:
+              type: string
+              format: date-time
+              pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})?$'
+              nullable: true
+              example: null
+              description: Fecha de creación o registro del contrato social de la entidad.
+            modified-date:
+              type: string
+              format: date-time
+              pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})?$'
+              nullable: true
+              example: null
+              description: Fecha de la última modificación de los datos de la entidad.
+            certificate:
+              type: object
+              properties:
+                category-code:
+                  type: string
+                  nullable: true
+                  example: null
+                  description: Categoría de la PyME. 
+                valid-date-from:
+                  type: string
+                  format: date
+                  nullable: true
+                  example: null
+                  description: Fecha de inicio de validez del certificado PyME.
+                valid-date-to:
+                  type: string
+                  format: date
+                  nullable: true
+                  example: null
+                  description: Fecha de vencimiento del certificado PyME.
+                issuance-date:
+                  type: string
+                  format: date
+                  nullable: true
+                  example: null
+                  description: Fecha de emisión del certificado PyME.
+                registration-number:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Número de registro del certificado PyME.
+                sector:
+                  type: object
+                  properties:
+                    code:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      example: null
+                      description: Código identificador del sector de actividad de la entidad.
+                    description:
+                      type: string
+                      nullable: true
+                      example: null
+                      description: Descripción asociada al código del sector de actividad.
+                transaction-type-code:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Número de transacción asociado al certificado PyME.
+              required:
+                 - category-code
+                 - valid-date-from
+                 - valid-date-to
+                 - issuance-date
+                 - registration-number
+                 - sector
+                 - transaction-type-code
+            closure-month:
+              type: integer
+              format: int32
+              maximum: 12
+              example: 12
+              description: Mes de cierre del ejercicio fiscal de la entidad.
+            taxes:
+              type: array
+              description: Lista de impuestos
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-company-taxes-data'
+            activities:
+              type: array
+              description: Lista de actividades
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-company-activities-data'
+            contacts:
+              type: array
+              description: Lista de contactos
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-company-contacts-data'
+            employee-payrolls:
+              type: array
+              description: Lista de empleados
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-company-employee-payrolls-data'
+            regimes:
+              type: array
+              description: Lista de regimenes
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-company-regimes-data'
+            last-modified:
+              type: object
+              properties:
+                indicators-date:
+                  type: string
+                  format: date-time
+                  pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})?$'
+                  nullable: true
+                  example: null
+                  description:  Fecha de la última modificación de los indicadores de la entidad.
+                documents-date:
+                  type: string
+                  format: date-time
+                  pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})?$'
+                  nullable: true
+                  example: null
+                  description: Fecha de la última modificación de los documentos de la entidad.
+                parties-date:
+                  type: string
+                  format: date-time
+                  pattern: '^$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})?$'
+                  nullable: true
+                  example: null
+                  description: Fecha de la última modificación de las autoridades de la entidad.
+          required:
+            - legal-name
+            - tax-registered-address
+            - primary-activity
+            - legal-status
+            - modified-date 
+            - certificate
+            - closure-month 
+            - taxes
+            - activities
+            - employee-payrolls
+            - regimes
+        indicator:
+          type: object
+          properties:
+            period-information:
+              type: object
+              properties:
+                period:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Año del período al cual hace referencia la información de indicadores.
+                presentation-date:
+                  type: string
+                  format: date
+                  nullable: true
+                  example: null
+                  description: Fecha en la que se presentó la documentación correspondiente para el calculo de los indicadores.
+              required:
+                - period
+                - presentation-date
+            details:
+              type: array
+              description: Lista de detalle de indicadores
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-indicator-details-data'
+          required:
+            - period-information
+            - details
+        indicators-post-balance:
+          type: object
+          properties:
+            sales:
+              type: array
+              description: Lista de ventas
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-indicators-post-balance-sales-data'
+            purchases:
+              type: array
+              description: Lista de compras
+              items:
+                $ref: '#/components/schemas/bureau-post-request-service-indicators-post-balance-purchases-data'
+          required:
+            - sales
+            - purchases
+        parties:
+          type: array
+          description: Lista de autoridad
+          items:
+            $ref: '#/components/schemas/bureau-post-request-service-parties-data'
+        documents:
+          type: array
+          description: Lista de documentos
+          items:
+            $ref: '#/components/schemas/bureau-post-request-service-documents-data'
+        
+    bureau-post-request-errors-data:
+      type: object
+      properties:
+        services:
+          type: array
+          description: Lista de services
+          items:
+            $ref: '#/components/schemas/bureau-post-request-errors-service-data'
+        validations:
+          type: array
+          description: Lista de deudas
+          items:
+            $ref: '#/components/schemas/bureau-post-request-errors-validations-data'
+                
+    bureau-post-request-errors-service-data:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "indicadores"
+          description: nombre
+        details:
+          type: array
+          description: Lista de deudas
+          items:
+            $ref: '#/components/schemas/bureau-post-request-errors-service-validations-details-data'
+
+    bureau-post-request-errors-validations-data:
+      type: object
+      properties:
+        details:
+          type: array
+          description: Lista de deudas
+          items:
+            $ref: '#/components/schemas/bureau-post-request-errors-service-validations-details-data'
+
+    bureau-post-request-errors-service-validations-details-data:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+          example: null
+          description: codigo de error
+        message:
+          type: string
+          nullable: true
+          example: null
+          description: mensaje de error
+            
+    bureau-post-request-service-debt-details-data:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Código identificador del impuesto.
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre del impuesto al que hace referencia el campo código
+        period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$'
+          example: null
+          description: Periodo fiscal de la deuda.
+      required:
+        - code
+        - description
+        - period
+
+    bureau-post-request-service-company-taxes-data:
+      type: object
+      properties:
+        code:
+          type: integer
+          format : int32
+          nullable: true
+          example: null
+          description: Código que identifica el tipo de impuesto.
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripción del impuesto.
+        status-code:
+          type: string
+          nullable: true
+          example: null
+          description: Estado actual del impuesto.
+        origin-code:
+          type: string
+          nullable: true
+          example: null
+          description: Origen del impuesto. Actualmente el único valor relevado es "padron"
+        is-currently-valid:
+          type: boolean
+          nullable: true
+          example: true
+          description: Indica si el impuesto está vigente.
+        validity-period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$'
+          example: null
+          description: Período de vigencia del impuesto.
+        last-updated-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de la última actualización del impuesto.
+      required:
+        - code
+        - description
+        - status-code
+        - origin-code
+        - is-currently-valid
+        - validity-period
+        - last-updated-date
+        
+    bureau-post-request-service-company-activities-data:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Código que identifica la actividad económica.
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripción de la actividad económica.
+        status-code:
+          type: string
+          nullable: true
+          example: null
+          description: Estado actual de la actividad.
+        origin-description:
+          type: string
+          nullable: true
+          example: null
+          description: Origen de la actividad.
+        is-currently-valid: 
+          type: boolean
+          nullable: true
+          example: true
+          description: Indica si la actividad está vigente.
+        validity-period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$'
+          example: null
+          description: Período de vigencia de la actividad.
+        last-updated-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de la última actualización de la actividad.
+      required:
+        - code
+        - description
+        - status-code
+        - origin-description
+        - is-currently-valid
+        - validity-period
+        - last-updated-date
+        
+    bureau-post-request-service-company-contacts-data:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre del contacto.
+        type:
+          type: string
+          nullable: true
+          example: null
+          description: Tipo de contacto.
+        phone:
+          type: string
+          nullable: true
+          example: null
+          description: Número de teléfono del contacto.
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: null
+          description: Dirección de correo electrónico del contacto.
+      required:
+        - name
+        - type
+        - phone
+        - email
+           
+    bureau-post-request-service-company-employee-payrolls-data:
+      type: object
+      properties:
+        period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$' 
+          example: null
+          description: Período correspondiente al registro de nómina.
+        presentation-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de presentación del registro de nómina.
+        rectification-number:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Número de rectificaciones realizadas al registro.
+        employee-number:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad de empleados en el período.
+        gross-payroll-amount:
+          type: string
+          nullable: true
+          pattern: '^(\d+(\.\d+)?)?$'
+          example: null
+          description: Masa salarial bruta total del período.
+      required:
+        - period
+        - presentation-date
+        - rectification-number
+        - employee-number
+        - gross-payroll-amount
+        
+    bureau-post-request-service-company-regimes-data:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Identificador único del régimen tributario.
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripción del régimen tributario.
+        type:
+          type: string
+          nullable: true
+          example: null
+          description: Tipo de régimen tributario.
+        status-code:
+          type: string
+          nullable: true
+          example: null
+          description: Estado actual del régimen.
+        tax-code:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Identificador del impuesto asociado al régimen.
+        period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$'
+          example: null
+          description: Período de aplicación del régimen.
+      required:
+        - code
+        - description
+        - type
+        - status-code
+        - tax-code
+        - period
+    bureau-post-request-service-indicator-details-data:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "endeudamiento"
+          description: Métrica financiera u operativa utilizada para evaluar el desempeño económico de la entidad.
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripcion de la metrica
+        metric-value: 
+          type: string
+          nullable: true
+          pattern: '^(-?\d+(\.\d+)?)?$'
+          example: null
+          description: Valor numérico asociado a una métrica 
+        metric-type-code:
+          type: string
+          example: "RATIO"
+          description: tipo de métrica o unidad utilizada para expresar el valor numérico en 'monto'.
+      required:
+        - name
+        - metric-value
+        - metric-type-code
+        
+    bureau-post-request-service-indicators-post-balance-sales-data:
+      type: object
+      properties:
+        period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$' 
+          example: null
+          description: Fecha (año y mes) del período.
+        amount:
+          type: string
+          nullable: true
+          pattern: '^(-?\d+(\.\d+)?)?$'
+          example: null
+          description: Muestra el monto neto gravado de ventas del período especificado.
+      required:
+        - period
+        - amount
+        
+    bureau-post-request-service-indicators-post-balance-purchases-data:
+      type: object
+      properties:
+        period:
+          type: string
+          nullable: true
+          pattern: '^$|^(?!0000)\d{4}(-?(0[1-9]|1[0-2]))$' 
+          example: null
+          description: Fecha (año y mes) del período.
+        amount:
+          type: string
+          nullable: true
+          pattern: '^(-?\d+(\.\d+)?)?$'
+          example: null
+          description: Muestra el monto neto gravado de compras del período especificado.
+      required:
+        - period
+        - amount
+        
+    bureau-post-request-service-parties-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          nullable: true
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          example: null
+          description: Identificador único CUIT (Código Único de Identificación Tributaria).
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre legal o razón social de la autoridad.
+        is-shareholder:
+          type: boolean
+          nullable: true
+          example: true
+          description: Indica si la autoridad es accionista. true si es accionista, false si no lo es.
+        ownership-percentage:
+          type: string
+          nullable: true
+          pattern: '^(100(?:\.00?)?|0(?:\.00?)?|[1-9]?[0-9](?:\.[0-9]{1,2})?)?$'
+          example: null
+          description: Porcentaje de participación accionaria.
+        position:
+          type: object
+          properties:
+            code:
+              type: integer
+              format: int32
+              example: 1
+              description: Código identificador del cargo.
+            description: 
+              type: string
+              example: "AUTORIZADO A TRAMITAR"
+              description: Descripción asociada al código.
+          required:
+            - code
+            - description
+      required:
+        - taxpayer-number
+        - legal-name
+        - is-shareholder
+        - ownership-percentage 
+        - position
+            
+    bureau-post-request-service-documents-data:
+      type: object
+      properties:
+        period:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Año del período al que corresponden los documentos.
+        details:
+          type: array
+          description: Lista de documentos
+          items:
+            $ref: '#/components/schemas/bureau-post-request-service-documents-details-data'
+            
+    bureau-post-request-service-documents-details-data:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Código identificador único del documento.
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripción asociada al código de documento.
+        references:
+          type: array
+          description: Lista de documentos
+          items:
+            $ref: '#/components/schemas/bureau-post-request-service-documents-references-data'
+    
+    bureau-post-request-service-documents-references-data:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+          example: null
+          description: Identificador único de la referencia.
+  #-----------------------------------------------------------------
+  # POST - response - Declined Transactions Notifications 
+  #-----------------------------------------------------------------
+    webhooks-prisma-post-response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ""
+          description: Status
+        code:
+          type: string
+          example: ""
+          description: Codigo 
+        
+  #-----------------------------------------------------------------
+  # POST - response - Approved Transactions Notifications 
+  #-----------------------------------------------------------------
+    approved-prisma-post-response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ""
+          description: Status
+        code:
+          type: string
+          example: ""
+          description: Codigo   
+        title:
+          type: string
+          example: ""
+          description: Titulo       
+             
+
+#-----------------------------------------------------------------
+# POST - resquest - webhooks-ai-artax	 
+#-----------------------------------------------------------------
+
+    lectura-documentos-post-request:
+      type: object
+      required:
+          - idLecturaDocumentosIA
+          - idSolicitud
+          - estado
+          - evento
+          - validacionesResultado
+      properties:
+        idDocuLecturaDocumentosIA:
+          type: string
+          description: "ID del documento en el sistema"
+          example: "DOC-98765"
+        idLecturaDocumentosIA:
+          type: string
+          description: "ID de la lectura por IA"
+          example: "LEC-12345"
+        idSolicitud:
+          type: string
+          description: "ID de la solicitud asociada"
+          example: "SOL-5555"
+        documentoTipo:
+          type: string
+          description: "Tipo de documento procesado"
+          example: "DNI"
+        estado:
+          type: string
+          description: "Estado del procesamiento"
+          example: "FINALIZADO"
+        evento:
+          type: string
+          description: "Evento que dispara la acción"
+          example: "NUEVO_DOCUMENTO"
+        partesTotal:
+          type: string
+          description: "Cantidad total de partes del documento"
+          example: "1"
+        datosExtraidos:
+          $ref: '#/components/schemas/DatosExtraidos'
+        validacionesResultado:
+          $ref: '#/components/schemas/ValidacionesResultado'
+
+
+    DatosExtraidos:
+      type: object
+      properties:
+        apoderado:
+          type: object
+          properties:
+            apellido:
+              type: string
+              description: "Apellido del apoderado"
+              example: "Perez"
+            cuit:
+              type: string
+              description: "CUIT del apoderado"
+              example: "20123456789"
+            documentoPersonal:
+              type: string
+              description: "Número de documento"
+              example: "12345678"
+            domicilio:
+              $ref: '#/components/schemas/Domicilio'
+            fechaNacimiento:
+              type: string
+              format: date
+              description: "Fecha de nacimiento"
+              example: "1980-05-15"
+            nombre:
+              type: string
+              description: "Nombre del apoderado"
+              example: "Juan"
+        autoridades:
+          type: array
+          items:
+            type: object
+            properties:
+              apellido:
+                type: string
+                description: "Apellido de la autoridad"
+                example: "Gomez"
+              cuit:
+                type: string
+                description: "CUIT de la autoridad"
+                example: "27123456789"
+              nombre:
+                type: string
+                description: "Nombre de la autoridad"
+                example: "Maria"
+        certificacionBalance:
+          type: object
+          properties:
+            oblea:
+              type: string
+              description: "Número de oblea de certificación"
+              example: "OBL-123"
+        controlPaginado:
+          type: object
+          properties:
+            numeracionDoc:
+              type: string
+              description: "Control de paginado"
+              example: "1/5"
+        convocatoria:
+          type: object
+          properties:
+            fecha:
+              type: string
+              format: date
+              description: "Fecha de convocatoria"
+              example: "2023-10-20"
+            medio:
+              type: string
+              description: "Medio de la convocatoria"
+              example: "Boletín Oficial"
+        datoFirma:
+          type: array
+          items:
+            type: object
+            properties:
+              cargo:
+                type: string
+                description: "Cargo del firmante"
+                example: "Presidente"
+              firma:
+                type: boolean
+                description: "Indica si posee firma"
+                example: true
+              nombreYApellidod:
+                type: string
+                description: "Nombre y apellido del firmante"
+                example: "Carlos Lopez"
+        datosBalance:
+          type: object
+          properties:
+            cuit:
+              type: string
+              description: "CUIT asociado al balance"
+              example: "30123456789"
+            razonSocial:
+              type: string
+              description: "Razón social"
+              example: "Empresa S.A."
+        datosConsorcio:
+          $ref: '#/components/schemas/DatosConsorcio'
+        datosDoc:
+          type: object
+          properties:
+            legajo:
+              type: string
+              description: "Número de legajo"
+              example: "LEG-001"
+            matricula:
+              type: string
+              description: "Número de matrícula"
+              example: "MAT-998"
+        datosEncuentro:
+          type: object
+          properties:
+            entidad:
+              type: string
+              description: "Entidad del encuentro"
+              example: "Asamblea General"
+            fechaActo:
+              type: string
+              format: date
+              description: "Fecha del acto"
+              example: "2023-11-01"
+            hora:
+              type: object
+              properties:
+                hour:
+                  type: integer
+                  format: int32
+                  description: "Hora del acto"
+                  example: 14
+                minute:
+                  type: integer
+                  format: int32
+                  description: "Minuto del acto"
+                  example: 30
+                nano:
+                  type: integer
+                  format: int32
+                  description: "Nanosegundos"
+                  example: 0
+                second:
+                  type: integer
+                  format: int32
+                  description: "Segundos"
+                  example: 0
+            motivoAsamblea:
+              type: string
+              description: "Motivo de la asamblea"
+              example: "Aprobación de balance"
+            tipoAsambleas:
+              type: string
+              description: "Tipo de asamblea"
+              example: "Ordinaria"
+        datosExpensas:
+          type: object
+          properties:
+            fechaDoc:
+              type: string
+              format: date
+              description: "Fecha del documento de expensas"
+              example: "2023-10-01"
+            periodo:
+              type: string
+              description: "Periodo liquidado"
+              example: "Octubre 2023"
+        datosPersonales:
+          type: array
+          items:
+            type: object
+            properties:
+              apellidoDni:
+                type: string
+                description: "Apellido según DNI"
+                example: "Perez"
+              documentoDni:
+                type: string
+                description: "Número de DNI"
+                example: "12345678"
+              domicilioDni:
+                type: object
+                properties:
+                  dorso:
+                    type: boolean
+                    description: "Indica si se leyó el dorso"
+                    example: true
+                  ejemplarDni:
+                    type: string
+                    description: "Ejemplar del DNI"
+                    example: "A"
+                  fechaNacimientoDni:
+                    type: string
+                    format: date
+                    description: "Fecha de nacimiento en DNI"
+                    example: "1980-05-15"
+                  fechaVencimiento:
+                    type: string
+                    format: date
+                    description: "Fecha de vencimiento del DNI"
+                    example: "2030-05-15"
+                  frente:
+                    type: boolean
+                    description: "Indica si se leyó el frente"
+                    example: true
+                  nacionalidadDni:
+                    type: string
+                    description: "Nacionalidad en DNI"
+                    example: "Argentina"
+                  nombreDni:
+                    type: string
+                    description: "Nombre en DNI"
+                    example: "Juan"
+                  nroTramite:
+                    type: string
+                    description: "Número de trámite"
+                    example: "00123456789"
+                  tipoDoc:
+                    type: string
+                    description: "Tipo de documento"
+                    example: "DNI"
+        encabezadoTitulo:
+          type: object
+          properties:
+            tituloDoc:
+              type: string
+              description: "Título del documento"
+              example: "Estatuto Social"
+        enumeracion:
+          type: object
+          properties:
+            consecutivaPaginado:
+              type: boolean
+              description: "Paginado consecutivo"
+              example: true
+            paginado:
+              type: array
+              items:
+                type: string
+                description: "Páginas detectadas"
+                example: "1"
+            portada:
+              type: array
+              items:
+                type: string
+                description: "Portadas detectadas"
+                example: "Portada 1"
+        lugar:
+          type: object
+          properties:
+            ciudadActo:
+              type: string
+              description: "Ciudad del acto"
+              example: "CABA"
+            direccionActo:
+              type: string
+              description: "Dirección del acto"
+              example: "Av. Corrientes 1234"
+            provincia:
+              type: string
+              description: "Provincia del acto"
+              example: "Buenos Aires"
+        matriculaEscribano:
+          type: string
+          description: "Matrícula del escribano interviniente"
+          example: "4567"
+        nombreLegalRubro:
+          type: object
+          properties:
+            domicilioLegal:
+              $ref: '#/components/schemas/Domicilio'
+            objetoSocial:
+              type: string
+              description: "Objeto social"
+              example: "Venta de indumentaria"
+            razonSocial:
+              type: string
+              description: "Razón social"
+              example: "Moda S.A."
+        numeracion:
+          type: object
+          properties:
+            folio:
+              type: string
+              description: "Número de folio"
+              example: "12"
+            libro:
+              type: string
+              description: "Número de libro"
+              example: "3"
+        objetoYAlcance:
+          type: object
+          properties:
+            detalle:
+              type: string
+              description: "Detalle del objeto"
+              example: "Poder General"
+            legalizacionApostilla:
+              type: object
+              properties:
+                nroProtocolo:
+                  type: string
+                  description: "Número de protocolo"
+                  example: "PROT-001"
+                sello:
+                  type: boolean
+                  description: "Posee sello"
+                  example: true
+            limitaciones:
+              type: string
+              description: "Limitaciones establecidas"
+              example: "Hasta $1.000.000"
+            tipoFacultad:
+              type: string
+              description: "Tipo de facultad otorgada"
+              example: "Administración"
+        ordenDelDia:
+          type: array
+          items:
+            type: object
+            properties:
+              descripcion:
+                type: string
+                description: "Descripción del punto"
+                example: "Aprobación de memoria"
+              numero:
+                type: string
+                description: "Número de orden"
+                example: "1"
+        otorgante:
+          type: object
+          properties:
+            cuitSociedad:
+              type: string
+              description: "CUIT de la sociedad otorgante"
+              example: "30987654321"
+            denominacionSocial:
+              type: string
+              description: "Denominación social otorgante"
+              example: "Inversiones S.A."
+            domicilioSocial:
+              $ref: '#/components/schemas/Domicilio'
+        periodoBalance:
+          type: object
+          properties:
+            fechaFinal:
+              type: string
+              format: date
+              description: "Fecha de fin del balance"
+              example: "2023-12-31"
+            fechaInicio:
+              type: string
+              format: date
+              description: "Fecha de inicio del balance"
+              example: "2023-01-01"
+        quorum:
+          type: object
+          properties:
+            convocados:
+              type: string
+              description: "Cantidad de convocados"
+              example: "50"
+            presentes:
+              type: string
+              description: "Cantidad de presentes"
+              example: "45"
+        tipoDoc:
+          type: object
+          properties:
+            tipoEstatuto:
+              type: string
+              description: "Tipo de estatuto"
+              example: "S.A."
+            tipoPoder:
+              type: string
+              description: "Tipo de poder"
+              example: "Especial"
+        unidadesFuncionales:
+          type: object
+          properties:
+            detalle:
+              type: array
+              items:
+                type: object
+                properties:
+                  totalUnidades:
+                    type: string
+                    description: "Total de unidades funcionales"
+                    example: "10"
+                  unidades:
+                    type: array
+                    items:
+                      type: string
+                      description: "Identificador de la unidad"
+                      example: "UF 1"
+        vigenciaEstatuto:
+          type: object
+          properties:
+            fechaConformacion:
+              type: string
+              format: date
+              description: "Fecha de conformación"
+              example: "2020-01-01"
+            fechaFin:
+              type: string
+              format: date
+              description: "Fecha de fin de vigencia"
+              example: "2119-12-31"
+        vigenciaMandato:
+          type: object
+          properties:
+            fechaFinDesignado:
+              type: string
+              format: date
+              description: "Fin del mandato"
+              example: "2025-12-31"
+            fechaInicioDesignado:
+              type: string
+              format: date
+              description: "Inicio del mandato"
+              example: "2023-01-01"
+
+    DatosConsorcio:
+      type: object
+      properties:
+        apellidoYNombreAdministrador:
+          type: string
+          description: "Nombre del administrador del consorcio"
+          example: "Lopez, Carlos"
+        cuit:
+          type: string
+          description: "CUIT del consorcio"
+          example: "30555555551"
+        direccion:
+          type: object
+          properties:
+            administrador:
+              type: object
+              properties:
+                cuit:
+                  type: string
+                  description: "CUIT del administrador"
+                  example: "20111111112"
+                direccion:
+                  $ref: '#/components/schemas/Domicilio'
+                nombreYApellido:
+                  type: string
+                  description: "Nombre del administrador en dirección"
+                  example: "Carlos Lopez"
+        asambleaConstitucion:
+          type: object
+          properties:
+            asambleaAprobada:
+              type: string
+              description: "Indica si fue aprobada"
+              example: "Si"
+            fecha:
+              type: string
+              format: date
+              description: "Fecha de constitución"
+              example: "2010-05-10"
+            notificaciones:
+              type: string
+              description: "Notificaciones de asamblea"
+              example: "Por carta documento"
+            ordenDelDia:
+              type: string
+              description: "Orden del día"
+              example: "Constitución de consorcio"
+            quorum:
+              type: string
+              description: "Quorum alcanzado"
+              example: "100%"
+            tipo:
+              type: string
+              description: "Tipo de asamblea"
+              example: "Extraordinaria"
+            totalPropietarios:
+              type: string
+              description: "Propietarios totales"
+              example: "20"
+        calle:
+          type: string
+          description: "Calle del consorcio"
+          example: "Av. Cabildo"
+        ciudad:
+          type: string
+          description: "Ciudad del consorcio"
+          example: "CABA"
+        codigoPostal:
+          type: string
+          description: "Código postal"
+          example: "1428"
+        datosEscribano:
+          type: object
+          properties:
+            firmaEscribano:
+              type: boolean
+              description: "Firma del escribano presente"
+              example: true
+            nombreYApellido:
+              type: string
+              description: "Nombre del escribano"
+              example: "Jose Rodriguez"
+            nroMatricula:
+              type: string
+              description: "Matrícula del escribano"
+              example: "7788"
+        departamento:
+          type: string
+          description: "Departamento (si aplica)"
+          example: "A"
+        detalleUnidades:
+          type: array
+          items:
+            type: object
+            properties:
+              departamento:
+                type: string
+                description: "Depto de la unidad"
+                example: "A"
+              metros:
+                type: string
+                description: "Metros cuadrados"
+                example: "45.5"
+              numero:
+                type: string
+                description: "Número de unidad"
+                example: "1"
+              piso:
+                type: string
+                description: "Piso de la unidad"
+                example: "1"
+        lugarYFechaOtorgamiento:
+          type: object
+          properties:
+            fecha:
+              type: string
+              format: date
+              description: "Fecha de otorgamiento"
+              example: "2023-10-15"
+            lugar:
+              type: string
+              description: "Lugar de otorgamiento"
+              example: "CABA"
+            numero:
+              type: string
+              description: "Número de otorgamiento"
+              example: "123"
+            pais:
+              type: string
+              description: "País"
+              example: "Argentina"
+            piso:
+              type: string
+              description: "Piso"
+              example: "1"
+            provincia:
+              type: string
+              description: "Provincia"
+              example: "Buenos Aires"
+        unidadesFuncionales:
+          type: object
+          properties:
+            totalUnidades:
+              type: string
+              description: "Total de unidades"
+              example: "20"
+        domicilioConstituido:
+          $ref: '#/components/schemas/Domicilio'
+        emailConsorcio:
+          type: string
+          format: email
+          description: "Email de contacto del consorcio"
+          example: "administracion@consorcio.com"
+        nombre:
+          type: string
+          description: "Nombre del consorcio"
+          example: "Consorcio Av Cabildo 1000"
+        nroMatricula:
+          type: string
+          description: "Matrícula del consorcio"
+          example: "9999"
+        razonSocial:
+          type: string
+          description: "Razón social del consorcio"
+          example: "Consorcio Copropietarios Cabildo"
+
+    ValidacionesResultado:
+      type: object
+      required:
+        - valido
+      properties:
+        valido:
+          type: boolean
+          description: "Resultado final de validación"
+          example: true
+        alertas:
+          type: object
+          properties:
+            accionRequerida:
+              type: boolean
+              description: "Indica si se requiere acción por la alerta"
+              example: false
+            camposAfectados:
+              type: array
+              items:
+                type: string
+                description: "Campos con alertas"
+                example: "fechaNacimiento"
+            codigo:
+              type: string
+              description: "Código de la alerta"
+              example: "WARN-01"
+            motivo:
+              type: string
+              description: "Motivo de la alerta"
+              example: "Formato de fecha dudoso"
+            severidad:
+              type: object
+              properties:
+                clave:
+                  type: string
+                  description: "Clave de severidad"
+                  example: "MEDIA"
+                codigo:
+                  type: string
+                  description: "Código de severidad"
+                  example: "2"
+        errores:
+          type: object
+          properties:
+            accionRequerida:
+              type: boolean
+              description: "Indica si el error bloquea el proceso"
+              example: true
+            camposAfectados:
+              type: array
+              items:
+                type: string
+                description: "Campos con errores"
+                example: "cuit"
+            codigo:
+              type: string
+              description: "Código del error"
+              example: "ERR-05"
+            motivo:
+              type: string
+              description: "Motivo del error"
+              example: "CUIT inválido"
+            severidad:
+              type: object
+              properties:
+                clave:
+                  type: string
+                  description: "Nivel del error"
+                  example: "ALTA"
+                codigo:
+                  type: string
+                  description: "Código de severidad de error"
+                  example: "3"
+        resumen:
+          type: object
+          properties:
+            alertasCantidadTotal:
+              type: string
+              description: "Total de alertas"
+              example: "1"
+            camposValidadosCantidad:
+              type: string
+              description: "Total de campos validados"
+              example: "50"
+            erroresCantidadTotal:
+              type: string
+              description: "Total de errores"
+              example: "0"
+            
+
+    Domicilio:
+      type: object
+      properties:
+        calle:
+          type: string
+          description: "Nombre de la calle"
+          example: "San Martin"
+        ciudad:
+          type: string
+          description: "Ciudad del domicilio"
+          example: "Rosario"
+        codigoPostal:
+          type: string
+          description: "Código Postal"
+          example: "2000"
+        departamento:
+          type: string
+          description: "Departamento"
+          example: "B"
+        numero:
+          type: string
+          description: "Altura o número"
+          example: "1234"
+        pais:
+          type: string
+          description: "País del domicilio"
+          example: "Argentina"
+        piso:
+          type: string
+          description: "Piso"
+          example: "4"
+        provincia:
+          type: string
+          description: "Provincia"
+          example: "Santa Fe"
+#-----------------------------------------------------------------
+# POST - resquest - webhooks-debit-card	 
+#-----------------------------------------------------------------
+
+    post-debit-card-request:
+      type: object
+      required:
+          - operation_id
+          - transaction_status
+          - client
+          - result
+      properties:
+        operation_id:
+          type: string
+          description: "ID de operación único por cada alta de TD"
+          example: "e4ec01bf-1538-4f00-94f9-96c9214d9879"
+        transaction_status:
+          type: string
+          description: "Estado de la transaccion"
+          example: "COMPLETED"
+        client:
+          type: object
+          required:
+            - document_type
+            - document_number
+          properties:
+            document_type:
+              type: string
+              description: "Tipo de documento"
+              example: "01"
+            document_number:
+              type: string
+              description: "Numero de documento"
+              example: "30123456"
+        result:
+          type: object
+          required:
+            - accounts
+            - card
+          properties:
+            accounts:
+              type: array
+              description: Lista de cuentas
+              items:
+                $ref: '#/components/schemas/account'
+            card:
+              $ref: '#/components/schemas/card'
+
+
+    account:
+      type: object
+      required:
+        - account_type
+        - currency_id
+        - account_status
+        - cbu
+        - account_number
+        - service
+      properties:
+        account_type:
+          type: string
+          description: "tipo de cuenta"
+          example: "4"
+        currency_id:
+          type: string
+          description: "id de moneda"
+          example: "2"
+        account_status:
+          type: string
+          description: "Estado de la cuenta"
+          example: "OK"
+        cbu:
+          type: string
+          description: "CBU"
+          example: "2850590940090418135201"
+        account_number:
+          type: string
+          description: "numero de cuenta"
+          example: "200123456001"
+        service:
+          type: string
+          description: "nombre del servicio consultado"
+          example: "ALTA_CBU_COELSA"
+        error_code:
+          type: string
+          nullable: true
+          description: "codigo de error"
+          example: null
+        error_description:
+          type: string
+          nullable: true
+          description: "Descripcion de error"
+          example: null
+    
+    card:
+      type: object
+      required:
+        - masked_card_number
+        - member
+        - expiration_date
+        - client_class
+        - card_status
+        - service
+      properties:
+        masked_card_number:
+          type: string
+          description: "numero de tarjeta ofuscado"
+          example: "451764XXXXXX3295"
+        member:
+          type: string
+          description: "codigo de miembro"
+          example: "001"
+        expiration_date:
+          type: string
+          description: "Fecha de expiracion"
+          example: "3204"
+        client_class:
+          type: string
+          description: "Clasificacion de Cliente"
+          example: "4"
+        card_status:
+          type: string
+          description: "Estado de la Tarjeta"
+          example: "A"
+        service:
+          type: string
+          description: "nombre del servicio consultado"
+          example: "CONFIRMACION_TD_COBIS"
+        error_code:
+          type: string
+          nullable: true
+          description: "codigo de error"
+          example: null
+        error_description:
+          type: string
+          nullable: true
+          description: "Descripcion de error"
+          example: null
+
+ #-----------------------------------------------------------------
+  # POST - response - Artax 
+  #----------------------------------------------------------------- 
+    lectura-documentos-post-reponse:
+      type: object
+      properties:        
+        accionTomada:
+          type: object
+          description: Objeto que representa la acción realizada por el sistema o el usuario.
+          properties:
+            codigo:
+              type: string
+              format: string
+              description: Código identificador único de la operación o respuesta.
+              example: "ERR-404"
+            mensaje:
+              type: string
+              format: string
+              description: Descripción legible de la acción o el resultado obtenido.
+              example: "La operación se completó exitosamente."
+ #-----------------------------------------------------------------
+  # POST - terms-conditions
+  #----------------------------------------------------------------- 
+    terms-conditions-post-request:
+      type: object
+      properties:
+        idSolicitud:
+          type: string
+          description: Id Solicitud.
+          example: "ebf2f6b2-4f07-11f1-8a39-b6fd6a9f2248"
+        aceptada:
+          type: boolean
+          description: si el termino y condición fue aceptado.
+          example: true
+
+
+
+
+    webhooks-veraz-post-request:
+      type: object
+      properties:
+        request-id:
+          type: string
+          example: "string"
+          description: "Identificador único de la solicitud"
+        bureau:
+          type: string
+          enum:
+            - "veraz"
+            - "lufe"
+            - "siisa"
+            - "nosis"
+          example: "veraz"
+          description: "Nombre del bureau que genera la notificación"
+        status-code:
+          type: string
+          example: "string"
+          description: "Estado del procesamiento de la solicitud"
+        document-type:
+          type: string
+          enum:
+            - "DNI"
+            - "CUIT"
+            - "CUIL"
+          example: "DNI"
+          description: "Tipo de documento de la persona o empresa consultada"
+        company-taxpayer-number:
+          type: integer
+          format: int32
+          nullable: true
+          example: 0
+          description: "Número de documento (CUIT, CUIL o DNI) de la persona o empresa consultada"
+        validations:
+          type: array
+          items:
+            $ref: '#/components/schemas/webhooks-veraz-post-request-validations'
+        result:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result'
+      required:
+        - request-id
+        - bureau
+        - status-code
+        - document-type
+        - company-taxpayer-number
+
+    webhooks-veraz-post-request-validations-details:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "string"
+          description: "Código del error"
+        message:
+          type: string
+          example: "string"
+          description: "Descripción del error"
+      required:
+        - code
+        - message
+
+    webhooks-veraz-post-request-validations-errors-service-error-error:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "string"
+          description: "Código del error"
+        message:
+          type: string
+          example: "string"
+          description: "Descripción del error"
+      required:
+        - code
+        - message
+
+    webhooks-veraz-post-request-validations-errors-service-error:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "string"
+          description: "Nombre del integrante"
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/webhooks-veraz-post-request-validations-errors-service-error-error'
+      required:
+        - name
+        - errors
+
+    webhooks-veraz-post-request-validations-errors:
+      type: object
+      properties:
+        service:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-validations-errors-service-error'
+      required:
+        - service
+
+    webhooks-veraz-post-request-validations:
+      type: object
+      properties:
+        details:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-validations-details'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/webhooks-veraz-post-request-validations-errors'
+      required:
+        - details
+        - errors
+
+
+    webhooks-veraz-post-request-result-veraz-service-x6c-cache-policy:
+      type: object
+      properties:
+        is-from-cache:
+          type: boolean
+          example: true
+          description: "Indica si la respuesta proviene del cache"
+        updated-date:
+          type: string
+          format: date
+          example: "2026-08-28"
+          description: "Fecha de última actualización del cache"
+      required:
+        - is-from-cache
+        - updated-date
+
+    webhooks-veraz-post-request-result-veraz-service-x6c:
+      type: object
+      description: Respuesta de evaluación crediticia Veraz para el modelo X6C (Score / Resumen).
+      additionalProperties: false
+      required:
+        - transaction-id
+        - original-transaction-id
+        - evaluation
+      properties:
+        transaction-id:
+          type: string
+          description: Identificador único de la transacción actual.
+          example: "5a096785-0c1a-4d8c-90d3-43c247555668"
+        original-transaction-id:
+          type: string
+          description: Identificador único de la transacción origen.
+          example: "5a096785-0c1a-4d8c-90d3-43c247555668"
+        evaluation:
+          type: object
+          description: Detalle de la evaluación crediticia para el modelo X6C.
+          additionalProperties: false
+          required:
+            - status
+            - category-code
+            - category-details
+            - customer
+          properties:
+            status:
+              type: string
+              description: Estado del resultado de la evaluación.
+              example: "completed"
+            category-code:
+              type: string
+              description: Código de categoría asignado en la evaluación.
+              example: "APROBAR"
+            category-details:
+              type: array
+              description: Lista de detalles explicativos de la categoría obtenida.
+              items:
+                type: string
+                description: Detalle específico del perfil crediticio.
+                example: "Valida Identidad."
+            customer:
+              type: object
+              description: Información del cliente evaluado en el modelo X6C.
+              additionalProperties: false
+              properties:
+                document-number:
+                  type: string
+                  description: Número de documento de identidad del cliente.
+                  example: "31356207"
+                full-name:
+                  type: string
+                  description: Nombre completo del cliente.
+                  example: "LUCERO, EMILIO MARTIN"
+                gender:
+                  type: string
+                  description: Género del cliente según registro oficial.
+                  enum:
+                    - "M"
+                    - "F"
+                    - "I"
+                    - "S"
+                    - "X"
+                    - "B"
+                  example: "M"
+                risk-score:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Puntaje numérico asignado para la evaluación del riesgo.
+                  example: 666
+                score-population:
+                  type: string
+                  description: Grupo poblacional o modelo sobre el cual se aplicó el scoring.
+                  example: "OK"
+                income-predictor-score:
+                  type: string
+                  description: Indicador/Score predictor de nivel de ingresos.
+                  example: "R5"
+        cache-policy:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result-veraz-service-x6c-cache-policy'
+
+    webhooks-veraz-post-request-result-veraz-service-x6l-cache-policy:
+      type: object
+      properties:
+        is-from-cache:
+          type: boolean
+          example: true
+          description: ""
+        updated-date:
+          type: string
+          format: date
+          example: "2026-08-28"
+          description: "Fecha de última actualización del cache"
+      required:
+        - updated-date
+
+    webhooks-veraz-post-request-result-veraz-service-x6l:
+      type: object
+      description: Respuesta de evaluación crediticia Veraz para el modelo X6L (Reporte Legal y Bureau detallado).
+      additionalProperties: false
+      required:
+        - transaction-id
+        - original-transaction-id
+        - evaluation
+      properties:
+        transaction-id:
+          type: string
+          description: Identificador único de la transacción actual.
+          example: "9b187654-0c1a-4d8c-90d3-43c247551234"
+        original-transaction-id:
+          type: string
+          description: Identificador único de la transacción origen.
+          example: "9b187654-0c1a-4d8c-90d3-43c247551234"
+        evaluation:
+          type: object
+          description: Detalle de la evaluación crediticia para el modelo X6L.
+          additionalProperties: false
+          required:
+            - status
+            - category-code
+            - category-details
+            - customer
+          properties:
+            status:
+              type: string
+              description: Estado del resultado de la evaluación.
+              example: "completed"
+            category-code:
+              type: string
+              description: Código de categoría asignado en la evaluación.
+              example: "RECHAZAR"
+            category-details:
+              type: array
+              description: Lista de detalles explicativos de la categoría obtenida.
+              items:
+                type: string
+                description: Detalle específico del perfil crediticio.
+                example: "Mora legal detectada."
+            customer:
+              type: object
+              description: Información del cliente evaluado en el modelo X6L.
+              additionalProperties: false
+              properties:
+                document-number:
+                  type: string
+                  description: Número de documento de identidad del cliente.
+                  example: "25123456"
+                full-name:
+                  type: string
+                  description: Nombre completo del cliente.
+                  example: "GOMEZ, MARIA LAURA"
+                gender:
+                  type: string
+                  description: Género del cliente según registro oficial.
+                  enum:
+                    - "M"
+                    - "F"
+                    - "I"
+                    - "S"
+                    - "X"
+                    - "B"
+                  example: "F"
+                taxpayer-number:
+                  type: string
+
+                  pattern: "^(|(20|23|24|25|26|27|30|33|34)\\d{9})$"
+                  description: Identificación tributaria (CUIT/CUIL) de 11 dígitos.
+                  example: "27251234563"
+                addresses:
+                  type: array
+                  description: Lista de domicilios declarados.
+                  items:
+                    type: string
+                    description: Domicilio completo declarado por el cliente.
+                    example: "AV SAN MARTIN 450, MENDOZA"
+                type:
+                  type: string
+                  description: Tipo o categoría de perfil del cliente.
+                  example: "Cliente Existente"
+                document-version:
+                  type: string
+                  description: Versión o ejemplar del documento presentado.
+                  example: "A"
+            credit-cards:
+              type: object
+              description: Información consolidada de tarjetas de crédito para el modelo X6L.
+              additionalProperties: false
+              properties:
+                oldest-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Antigüedad de la tarjeta de crédito más antigua expresada en meses.
+                  example: 36
+                active-maximum-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto máximo del límite activo otorgado entre sus tarjetas de crédito.
+                  example: "500000.00"
+                has-normal-status-last-twelve-months:
+                  type: boolean
+                  description: Indica si mantuvo situación normal en los últimos 12 meses en tarjetas de crédito.
+                  example: false
+                has-financed-balance-limit-ratio:
+                  type: boolean
+                  description: Indica si posee relación entre saldo financiado y límite según el parámetro definido.
+                  example: true
+                has-peerbank-active:
+                  type: boolean
+                  description: Indica si posee tarjetas activas en entidades pares/competidoras.
+                  example: true
+                exigible-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto total exigible en tarjetas de crédito.
+                  example: "45000.00"
+                competitor-maximum-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto máximo del límite otorgado por entidades competidoras en tarjetas.
+                  example: "250000.00"
+                competitor-minimum-payment-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del pago mínimo requerido por competidores en tarjetas.
+                  example: "12000.00"
+            current-accounts:
+              type: object
+              description: Información consolidada de cuentas corrientes para el modelo X6L.
+              additionalProperties: false
+              properties:
+                oldest-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Antigüedad de la cuenta corriente más antigua en meses.
+                  example: 24
+                has-worst-status-twelve-months:
+                  type: boolean
+                  description: Indica si registró la peor situación o condición de irregularidad en los últimos 12 meses.
+                  example: true
+                is-average-usage-under-limit:
+                  type: boolean
+                  description: Indica si el uso promedio de la cuenta corriente se encuentra por debajo del límite autorizado.
+                  example: false
+                average-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del saldo promedio general histórico en cuentas corrientes.
+                  example: "87000.00"
+            loans:
+              type: object
+              description: Información consolidada de préstamos para el modelo X6L.
+              additionalProperties: false
+              properties:
+                refinanced-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad total de préstamos que registran un proceso de refinanciación.
+                  example: 1
+                unsecured:
+                  type: object
+                  description: Detalle de préstamos personales / a sola firma.
+                  additionalProperties: false
+                  properties:
+                    exigible-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto exigible al cobro para préstamos a sola firma.
+                      example: "25000.00"
+                pledge:
+                  type: object
+                  description: Detalle de préstamos prendarios.
+                  additionalProperties: false
+                  properties:
+                    exigible-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto exigible actual en préstamos prendarios.
+                      example: "10000.00"
+                mortgage:
+                  type: object
+                  description: Detalle de préstamos hipotecarios.
+                  additionalProperties: false
+                  properties:
+                    exigible-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto exigible al cobro en préstamos hipotecarios.
+                      example: "0.00"
+            bureau:
+              type: object
+              description: Información reportada por el bureau de crédito para el modelo X6L.
+              additionalProperties: false
+              properties:
+                worst-status-code:
+                  type: string
+                  description: Código del peor estado informado por el bureau de crédito.
+                  example: "4"
+            bcra:
+              type: object
+              description: Información reportada por el BCRA para el modelo X6L.
+              additionalProperties: false
+              properties:
+                worst-situation-twelve-months-code:
+                  type: string
+                  description: Código de la peor situación informada ante la Central de Deudores del BCRA en los últimos 12 meses.
+                  example: "4"
+                worst-situation-three-months-code:
+                  type: string
+                  description: Código de la peor situación informada ante la Central de Deudores del BCRA en los últimos 3 meses.
+                  example: "4"
+            legal-situation:
+              type: object
+              description: Situación legal del cliente para el modelo X6L.
+              additionalProperties: false
+              properties:
+                has-delinquency-observations:
+                  type: boolean
+                  description: Indica si posee observaciones de morosidad en entidad no financiera.
+                  example: true
+                lawsuits:
+                  type: object
+                  description: Resumen de juicios asociados.
+                  additionalProperties: false
+                  properties:
+                    active-executive-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de juicios ejecutivos activos registrados.
+                      example: 1
+                    executive-five-years-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de juicios ejecutivos entablados en los últimos 5 años.
+                      example: 2
+                    ordinary-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de juicios ordinarios en curso.
+                      example: 0
+                    sixty-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de juicios en los últimos 60 meses.
+                      example: 2
+                bankruptcy:
+                  type: object
+                  description: Resumen de concursos y quiebras.
+                  additionalProperties: false
+                  properties:
+                    requests-last-year-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de pedidos de quiebra/concurso registrados en el último año.
+                      example: 0
+                    requests-five-years-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de pedidos de quiebra/concurso registrados en los últimos 5 años.
+                      example: 0
+                    preventive-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de concursos preventivos solicitados o abiertos.
+                      example: 0
+                    decreed-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de quiebras decretadas formalmente.
+                      example: 0
+                    sixty-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de quiebras decretadas últimos 60 meses.
+                      example: 0
+                inhibitions:
+                  type: object
+                  description: Resumen de inhibiciones registradas.
+                  additionalProperties: false
+                  properties:
+                    asset-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de inhibiciones generales sobre bienes/patrimonio.
+                      example: 1
+                    other-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de otras inhibiciones cautelares o gravámenes.
+                      example: 0
+                    judicial-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad total de inhibiciones trabadas judicialmente.
+                      example: 1
+            cheqs:
+              type: object
+              description: Información consolidada de echeqs / cheques rechazados para el modelo X6L.
+              additionalProperties: false
+              properties:
+                unpaid-bounced-twenty-four-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto acumulado de echeqs/cheques rechazados sin pagar en los últimos 24 meses.
+                  example: "150000.00"
+                paid-bounced-twenty-four-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto acumulado de echeqs/cheques rechazados y abonados en los últimos 24 meses.
+                  example: "50000.00"
+                paid-bounced-twenty-four-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de echeqs/cheques rechazados que fueron posteriormente abonados en los últimos 24 meses.
+                  example: 2
+                unpaid-twenty-four-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto acumulado de echeqs/cheques no rebotados que fueron posteriormente abonados en los últimos 24 meses.
+                  example: "150000.00"
+                paid-twenty-four-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de echeqs/cheques no rebotados impagos en los últimos 12 meses.
+                  example: 2
+        cache-policy:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result-veraz-service-x6l-cache-policy'
+
+    webhooks-veraz-post-request-result-veraz-service-preescrining-cache-policy:
+      type: object
+      properties:
+        is-from-cache:
+          type: boolean
+          example: true
+          description: "Indica si la respuesta proviene del cache"
+        updated-date:
+          type: string
+          format: date
+          example: "2026-08-28"
+          description: "Fecha de última actualización del cache"
+      required:
+        - is-from-cache
+        - updated-date
+
+    webhooks-veraz-post-request-result-veraz-service-preescrining:
+      type: object
+      description: Respuesta de evaluación crediticia Veraz para el modelo Prescreening.
+      additionalProperties: false
+      required:
+        - transaction-id
+        - original-transaction-id
+        - evaluation
+      properties:
+        transaction-id:
+          type: string
+          description: Identificador único de la transacción actual.
+          example: "cc333333-0c1a-4d8c-90d3-43c24755abcd"
+        original-transaction-id:
+          type: string
+          description: Identificador único de la transacción origen.
+          example: "cc333333-0c1a-4d8c-90d3-43c24755abcd"
+        evaluation:
+          type: object
+          description: Detalle de la evaluación crediticia para el modelo Prescreening.
+          additionalProperties: false
+          required:
+            - status
+            - category-code
+            - category-details
+            - customer
+          properties:
+            status:
+              type: string
+              description: Estado del resultado de la evaluación.
+              example: "completed"
+            category-code:
+              type: string
+              description: Código de categoría asignado en la evaluación.
+              example: "PRE-APROBADO"
+            category-details:
+              type: array
+              description: Lista de detalles explicativos de la categoría obtenida.
+              items:
+                type: string
+                description: Detalle específico del perfil crediticio.
+                example: "Aprobación rápida por prescreening."
+            customer:
+              type: object
+              description: Información del cliente evaluado en el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                document-number:
+                  type: string
+                  description: Número de documento de identidad del cliente.
+                  example: "40111222"
+                full-name:
+                  type: string
+                  description: Nombre completo del cliente.
+                  example: "LOPEZ, JUAN IGNACIO"
+                gender:
+                  type: string
+                  description: Género del cliente según registro oficial.
+                  enum:
+                    - "M"
+                    - "F"
+                    - "I"
+                    - "S"
+                    - "X"
+                    - "B"
+                  example: "M"
+                birth-date:
+                  type: string
+                  format: date
+                  nullable: true
+                  description: Fecha de nacimiento del cliente en formato YYYY-MM-DD.
+                  example: "1997-11-05"
+                risk-score:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Puntaje numérico asignado para la evaluación del riesgo.
+                  example: 850
+                income-predictor-score:
+                  type: string
+                  description: Indicador/Score predictor de nivel de ingresos.
+                  example: "R8"
+                is-validated:
+                  type: boolean
+                  description: Indica si la identidad del cliente fue validada correctamente.
+                  example: true
+                is-hit:
+                  type: boolean
+                  description: Indica si el cliente fue localizado exitosamente en los bureau/bases externas.
+                  example: true
+            products:
+              type: object
+              description: Información de productos financieros para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                oldest-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Antigüedad del producto más antiguo medida en meses.
+                  example: 12
+                active-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de productos activos que posee el cliente.
+                  example: 1
+                active-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto total del saldo activo en productos.
+                  example: "15000.00"
+                active-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto total del límite activo otorgado en productos.
+                  example: "50000.00"
+                active-exigible-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto activo exigible al cobro en productos.
+                  example: "2000.00"
+                active-inactivity-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de meses de inactividad registrados en productos activos.
+                  example: 0
+                opened-six-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de productos aperturados en los últimos 6 meses.
+                  example: 1
+                overdue-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de productos con deuda vencida.
+                  example: 0
+                overdue-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto total del saldo vencido en productos.
+                  example: "0.00"
+                overdue-worst-status-six-months-code:
+                  type: string
+                  description: Código del peor estado registrado por morosidad en los últimos 6 meses.
+                  example: "1"
+            credit-cards:
+              type: object
+              description: Información consolidada de tarjetas de crédito para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                oldest-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Antigüedad de la tarjeta de crédito más antigua expresada en meses.
+                  example: 12
+                active-maximum-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto máximo del límite activo otorgado entre sus tarjetas de crédito.
+                  example: "30000.00"
+                limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto total del límite de crédito asignado.
+                  example: "30000.00"
+                maximum-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto máximo del límite global para tarjetas.
+                  example: "30000.00"
+                financed-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto correspondiente a saldos financiados en tarjetas de crédito.
+                  example: "5000.00"
+                installments-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del saldo adeudado consumido en cuotas.
+                  example: "3000.00"
+                active-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de tarjetas de crédito activas.
+                  example: 1
+                movements-six-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de movimientos realizados en tarjetas en los últimos 6 meses.
+                  example: 10
+                active-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del saldo activo actual en tarjetas de crédito.
+                  example: "10000.00"
+                average-balance-three-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Promedio mensual del saldo de tarjetas de crédito en los últimos 3 meses.
+                  example: "9000.00"
+                average-balance-six-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Promedio mensual del saldo de tarjetas de crédito en los últimos 6 meses.
+                  example: "8000.00"
+                active-inactivity-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de meses de inactividad registrados en tarjetas activas.
+                  example: 0
+                opened-six-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de tarjetas de crédito aperturadas en los últimos 6 meses.
+                  example: 0
+                overdue-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de tarjetas de crédito con deudas vencidas.
+                  example: 0
+                overdue-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del saldo vencido registrado en tarjetas de crédito.
+                  example: "0.00"
+                overdue-worst-status-six-months-code:
+                  type: string
+                  description: Código de la peor condición de mora registrada en tarjetas durante los últimos 6 meses.
+                  example: "1"
+                exigible-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto total exigible en tarjetas de crédito.
+                  example: "45000.00"
+            current-accounts:
+              type: object
+              description: Información de cuentas corrientes para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                oldest-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Antigüedad de la cuenta corriente más antigua en meses.
+                  example: 6
+                active-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de cuentas corrientes activas.
+                  example: 1
+                movements-six-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de movimientos transaccionales en cuentas corrientes durante los últimos 6 meses.
+                  example: 20
+                active-balance-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del saldo activo consolidado en cuentas corrientes.
+                  example: "5000.00"
+                active-overdraft-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del límite otorgado para giro en descubierto en cuentas activas.
+                  example: "20000.00"
+                exigible-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto exigible de utilización de giro en descubierto u otros conceptos.
+                  example: "0.00"
+                average-balance-three-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Promedio de saldo acumulado en los últimos 3 meses en cuentas corrientes.
+                  example: "4500.00"
+                average-balance-six-months-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Promedio de saldo acumulado en los últimos 6 meses en cuentas corrientes.
+                  example: "4000.00"
+                maximum-overdraft-limit-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto del límite máximo concedido de giro en descubierto.
+                  example: "20000.00"
+                overdue-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de cuentas corrientes que registran saldo impago vencido.
+                  example: 0
+                active-overdraft-amount:
+                  type: string
+                  pattern: "^\\d+\\.\\d+$"
+                  description: Monto actualmente girado en descubierto en las cuentas activas.
+                  example: "0.00"
+                worst-status-six-months-code:
+                  type: string
+                  description: Código del peor estado registrado en cuentas corrientes en los últimos 6 meses.
+                  example: "1"
+                active-inactivity-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de meses continuos de inactividad en cuentas corrientes.
+                  example: 0
+                opened-six-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de cuentas corrientes aperturadas durante los últimos 6 meses.
+                  example: 1
+            loans:
+              type: object
+              description: Información de préstamos para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                unsecured:
+                  type: object
+                  description: Detalle de préstamos personales / a sola firma.
+                  additionalProperties: false
+                  properties:
+                    oldest-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Antigüedad del préstamo personal más antiguo expresada en meses.
+                      example: 0
+                    exigible-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto exigible al cobro para préstamos a sola firma.
+                      example: "0.00"
+                    active-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de préstamos a sola firma que se encuentran activos.
+                      example: 0
+                    active-balance-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto de capital adeudado en préstamos a sola firma activos.
+                      example: "0.00"
+                    active-limit-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto límite originalmente otorgado en préstamos a sola firma.
+                      example: "0.00"
+                    active-inactivity-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de meses transcurridos sin pagos en préstamos a sola firma.
+                      example: 0
+                    opened-six-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de préstamos a sola firma otorgados en los últimos 6 meses.
+                      example: 0
+                    past-due-balance-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de cuotas atrasadas registradas en préstamos a sola firma.
+                      example: 0
+                    past-due-balance-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto del saldo que se encuentra en mora en préstamos a sola firma.
+                      example: "0.00"
+                    worst-status-six-months-code:
+                      type: string
+                      description: Código del peor estado de mora registrado en préstamos a sola firma durante los últimos 6 meses.
+                      example: "1"
+                pledge:
+                  type: object
+                  description: Detalle de préstamos prendarios.
+                  additionalProperties: false
+                  properties:
+                    oldest-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Antigüedad del préstamo prendario más antiguo en meses.
+                      example: 0
+                    exigible-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto exigible actual en préstamos prendarios.
+                      example: "0.00"
+                    active-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de préstamos prendarios activos.
+                      example: 0
+                    active-balance-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto del saldo activo pendiente en préstamos prendarios.
+                      example: "0.00"
+                    active-limit-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto del crédito acordado originalmente en préstamos prendarios.
+                      example: "0.00"
+                    active-inactivity-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Meses sin actividad registrada en créditos prendarios.
+                      example: 0
+                    opened-six-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de préstamos prendarios otorgados en los últimos 6 meses.
+                      example: 0
+                    past-due-balance-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de cuotas en mora en préstamos prendarios.
+                      example: 0
+                    past-due-balance-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto adeudado vencido registrado en créditos prendarios.
+                      example: "0.00"
+                    worst-status-six-months-code:
+                      type: string
+                      description: Código de la peor calificación crediticia en préstamos prendarios en los últimos 6 meses.
+                      example: "1"
+                mortgage:
+                  type: object
+                  description: Detalle de préstamos hipotecarios.
+                  additionalProperties: false
+                  properties:
+                    oldest-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Antigüedad del préstamo hipotecario más antiguo en meses.
+                      example: 0
+                    exigible-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto exigible al cobro en préstamos hipotecarios.
+                      example: "0.00"
+                    active-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de préstamos hipotecarios activos.
+                      example: 0
+                    active-balance-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto de capital adeudado en créditos hipotecarios activos.
+                      example: "0.00"
+                    active-limit-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto total del límite de crédito otorgado para préstamos hipotecarios.
+                      example: "0.00"
+                    active-inactivity-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de meses transcurridos sin movimientos en créditos hipotecarios.
+                      example: 0
+                    opened-six-months-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de préstamos hipotecarios dados de alta en los últimos 6 meses.
+                      example: 0
+                    past-due-balance-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad de impagos registrados en préstamos hipotecarios.
+                      example: 0
+                    past-due-balance-amount:
+                      type: string
+                      pattern: "^\\d+\\.\\d+$"
+                      description: Monto total vencido pendiente de pago en créditos hipotecarios.
+                      example: "0.00"
+                    worst-status-six-months-code:
+                      type: string
+                      description: Código del peor estado de morosidad registrado en préstamos hipotecarios en los últimos 6 meses.
+                      example: "1"
+            bureau:
+              type: object
+              description: Información reportada por el bureau de crédito para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                current-status-code:
+                  type: string
+                  description: Código del estado o calificación crediticia actual en el bureau.
+                  example: "1"
+                twelve-months-status-code:
+                  type: string
+                  description: Código del comportamiento crediticio en bureau durante los últimos 12 meses.
+                  example: "1"
+            bcra:
+              type: object
+              description: Información reportada por el BCRA para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                worst-status-twelve-months-code:
+                  type: string
+                  description: Código del peor estado BCRA en los últimos 12 meses.
+                  example: "1"
+                worst-status-last-month-code:
+                  type: string
+                  description: Código del peor estado BCRA reportado el último mes.
+                  example: "1"
+            legal-situation:
+              type: object
+              description: Situación legal del cliente para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                has-delinquency-six-months:
+                  type: boolean
+                  description: Indica si registra mora o atrasos judiciales/legales en los últimos 6 meses.
+                  example: false
+                lawsuits:
+                  type: object
+                  description: Resumen complementario de juicios.
+                  additionalProperties: false
+                  properties:
+                    ordinary-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad o métrica complementaria de juicios ordinarios.
+                      example: 0
+                    executive-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Cantidad o métrica complementaria de juicios ejecutivos.
+                      example: 0
+                bankruptcy:
+                  type: object
+                  description: Resumen complementario de concursos y quiebras.
+                  additionalProperties: false
+                  properties:
+                    requests-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Importe o indicador complementario de pedidos de quiebra.
+                      example: 0
+                    preventive-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Importe o indicador complementario de concursos preventivos.
+                      example: 0
+                    decreed-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Importe o indicador complementario de quiebras decretadas.
+                      example: 0
+                inhibitions:
+                  type: object
+                  description: Resumen complementario de inhibiciones.
+                  additionalProperties: false
+                  properties:
+                    asset-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Importe o monto estimado de inhibiciones patrimoniales.
+                      example: 0
+                    judicial-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Importe o monto estimado de inhibiciones judiciales.
+                      example: 0
+                    other-count:
+                      type: integer
+                      format: int32
+                      nullable: true
+                      description: Importe o monto estimado de otras inhibiciones anotadas.
+                      example: 0
+            cheqs:
+              type: object
+              description: Información de echeqs / cheques para el modelo Prescreening.
+              additionalProperties: false
+              properties:
+                unpaid-bounced-twelve-months-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  description: Cantidad de echeqs/cheques rechazados impagos en los últimos 12 meses.
+                  example: 0
+        cache-policy:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result-veraz-service-preescrining-cache-policy'
+
+    webhooks-veraz-post-request-result:
+      type: object
+      properties:
+        x6c:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result-veraz-service-x6c'
+        x6l:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result-veraz-service-x6l'
+        preescrining:
+          $ref: '#/components/schemas/webhooks-veraz-post-request-result-veraz-service-preescrining'
+
+# ERROR
+#---------------------------------------------------------------------    
+    error: 
+      type: object
+      properties:
+        Code:
+          type: string
+          example: "ERR-XXX"
+        Id:
+          type: string
+          example: "81cfc331-5726-42c6-8a95-2700b45ff5d538919"
+        Message:
+          type: string
+          example: "Error message"
+        Errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/errors'
+    
+    errors:
+      type: object
+      properties:
+        ErrorCode:
+          type: string
+          example: "ER-XXX"
+        Message:
+          type: string
+          example: "Error message"
+        Path:
+          type: string
+          example: "/v1/accounts/account-number/movements"
+  
+
+  #-----------------------------------------------------------------
+ 
+  responses:
+    badRequest:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    unauthorized: 
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    notFound: 
+          description: not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    conflict:
+          description: not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    tooManyRequests:
+          description: too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    internalServerError: 
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    badGateway:
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    serviceUnavailable: 
+          description: service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    gatewayTimeout: 
+          description: Gateway Timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  
+  #-------------------------------------------------------------------
+  # Ejemplos
+  #-------------------------------------------------------------------
+  examples: 
+    webhooks-prisma-post-request-200:
+      value:
+        card: 
+          identification_type: "DNI"
+          identification_number: "98765432"
+          gender: "M"
+          bin: "123456"
+          last_four_digits: "1234"
+          encrypted_card_number: "FuGxnHr4jLK87DE9ctB/o14l5ue+CYYWiAph9XKtgUs="
+          brand: "VI-CR"
+        transaction: 
+          type: "PURCHASE"
+          date_transaction: "2021-09-24T14:09:58-03:00"
+          authorization_code: "DECLINED"
+          authorization_description: "INSUFFICIENT-FUNDS"
+          open_description: "Declined"
+          brand_authorization_code: "62"
+          origin_currency: "ARS"
+          origin_amount: "3555.5"
+          domestic_currency: "USD"
+          domestic_amount: "20.99"
+          number_authorization: "123456"
+          quantity_installments: "12"
+          issuing_bank_code: "001"
+          presence_mark: true
+          input_method: "CONTACTLESS"
+          wallet_id_mc: "004"
+          wallet_id_visa: "5000"
+          qr_mark: "00"
+          qr_mark_payway: ""
+          wallet_id_payway: ""
+          token_requestor_id: ""
+          transaction_id: "001321478008484"
+          eci_moto: "00"
+          3ds_indicator: "01"
+          daf: "01"
+          stip: "    "
+        establishment: 
+          establishment_number: "12345"
+          establishment_country: "AR"
+          establishment_description: "Establishment Description"
+          establishment_category_local: "1124"
+          establishment_category_international: "1145"
+          acquiring_processor: "PRISMA"
+          terminal_id: "80267360"
+          acquiring_processor_id: "1"
+        
+    webhooks-prisma-post-response-200:
+      value:
+        status: "200"
+        code: "BC001-OK"
+
+    approved-prisma-post-request-200:
+      value:
+        card: 
+          identification_type: "DNI"
+          identification_number: "98765432"
+          gender: "M"
+          bin: "123456"
+          last_four_digits: "1234"
+          encrypted_card_number: "FuGxnHr4jLK87DE9ctB/o14l5ue+CYYWiAph9XKtgUs="
+          brand: "VI-CR"
+        transaction: 
+          type: "PURCHASE"
+          date_transaction: "2021-09-24T14:09:58-03:00"
+          authorization_code: "APPROVED"
+          authorization_description: "TRANSACTION-APPROVED"
+          open_description: "Approved"
+          brand_authorization_code: "62"
+          origin_currency: "ARS"
+          origin_amount: "3555.5"
+          domestic_currency: "USD"
+          domestic_amount: "20.99"
+          number_authorization: "123456"
+          quantity_installments: "12"
+          issuing_bank_code: "001"
+          presence_mark: true
+          input_method: "CONTACTLESS"
+          wallet_id_mc: "004"
+          wallet_id_visa: "5000"
+          qr_mark: "00"
+          qr_mark_payway: ""
+          wallet_id_payway: ""
+          token_requestor_id: ""
+          transaction_id: "001321478008484"
+          eci_moto: "00"
+          3ds_indicator: "01"
+          daf: "01"
+          extracash_amount: ""
+        establishment: 
+          establishment_number: "12345"
+          establishment_country: "AR"
+          establishment_description: "Establishment Description"
+          establishment_category_local: "1124"
+          establishment_category_international: "1145"
+          acquiring_processor: "PRISMA"
+          terminal_id: "80267360"
+          acquiring_processor_id: "1"
+
+    approved-prisma-post-response-200:
+      value:
+        status: "200"
+        code: "BC001-OK"
+        title: "OK"
+
+    webhooks-bureau-post-request-200-total:
+      value:
+        status-code: "OK"
+        request-id: "4cc55b02-eac8-4fd8-8d54-cb2c3024aab2"
+        taxpayer-number: "33711985129"
+        bureau: "lufe"
+        service: 
+          debt: 
+            has-tax-social-security-debt: null
+            has-social-security-debt: null
+            details:
+              -
+                code: null
+                description: null 
+                period: null
+          company: 
+            legal-name: "INDIA HUACA S.A."
+            tax-registered-address: "URUGUAY 750 Piso:05 Dpto:D - CIUDAD AUTONOMA BUENOS AIRES - 1015"
+            primary-activity: 
+              code: "14113"
+              description: "Cría de ganado bovino, excepto la realizada en cabañas y para la producción de leche"
+            legal-entity: 
+              code: 5
+              description: "Sociedades Comerciales por Acciones"
+            legal-status: "JURIDICA"
+            registration-date: "2014-12-22T00:00:00.000000Z"
+            modified-date: "2025-04-04T22:23:30.000000Z"
+            certificate: 
+              category-code: "MICRO"
+              valid-date-from: "2025-04-05"
+              valid-date-to: "2026-04-30"
+              issuance-date: "2025-04-04"
+              registration-number: 9949686
+              sector: 
+                code: 1
+                description: "Agropecuario"
+              transaction-type-code: 1084229850
+            closure-month: 12
+            taxes: 
+              -
+                code: 10
+                description: "GANANCIAS SOCIEDADES"
+                status-code: "AC"
+                origin-code: "padron"
+                is-currently-valid: true
+                validity-period: "2015-08"
+                last-updated-date: "2015-08-10"
+              -
+                code: 30
+                description: "IVA"
+                status-code: "BD"
+                origin-code: "padron"
+                is-currently-valid: false
+                validity-period: "2015-08"
+                last-updated-date: "2015-08-10"
+              -
+                code: 278
+                description: null
+                status-code: "EX"
+                origin-code: "padron"
+                is-currently-valid: true
+                validity-period: "2022-05"
+                last-updated-date: "2022-05-26"
+            activities:
+              -
+                code: 11121
+                description: "Cultivo de maíz"
+                status-code: "AC"
+                origin-description: "padron"
+                is-currently-valid: true
+                validity-period: "2019-09"
+                last-updated-date: "2019-10-21"
+              -
+                code: 9999999
+                description: null
+                status-code: "BD"
+                origin-description: "padron"
+                is-currently-valid: false
+                validity-period: "2015-08"
+                last-updated-date: "2015-08-10"
+              -
+                code: 103011
+                description: "Preparación de conservas de frutas, hortalizas y legumbres"
+                status-code: "AC"
+                origin-description: "padron"
+                is-currently-valid: true
+                validity-period: "2015-08"
+                last-updated-date: "2015-08-10"
+            contacts:
+              -
+                name: "CUORE CARLA"
+                type: "COMERCIAL"
+                phone: "(3465) 651234"
+                email: "carla.cuore@mail.com"
+              -
+                name: "NUÑEZ SEBASTIAN"
+                type: "DEL_CONTADOR"
+                phone: "(3465) 456789"
+                email: "sebastian.nunez@mail.com"
+            employee-payrolls:
+              -
+                period: "2024-09"
+                presentation-date: "2024-10-01"
+                rectification-number: 0
+                employee-number: 1
+                gross-payroll-amount: "450000.58"
+              -
+                period: "2025-05"
+                presentation-date: "2024-10-31"
+                rectification-number: 3
+                employee-number: 1
+                gross-payroll-amount:  "400000.00"
+            regimes: 
+              -
+                code: 191
+                description: null
+                type: "BAJA_DEFINITIVA"
+                status-code: "217"
+                tax-code: null
+                period: "1996-02"
+              -
+                code: 94
+                description: "HONORARIOS DE DIRECTOR DE S.A., FIDUCIARIO, INTEGRANTE DE CONSEJOS DE VIGILANCIA Y SOCIOS ADMINISTRADORES DE S.R.L., EN COMANDITA SIMPLE Y POR ACCIONES, ALBACEA, SINDICO, MANDATARIO, GESTOR DE NEGOCIO."
+                type: "ACTIVO"
+                status-code: "218"
+                tax-code: 2019
+                period: "1996-02"
+            last-modified: 
+              indicators-date: "2025-04-08T15:42:38.000000Z"
+              documents-date: "2025-04-04T22:23:35.010000Z"
+              parties-date: "2024-04-08T15:14:30.000305Z"
+          indicator: 
+            period-information: 
+              period: 2024
+              presentation-date: null
+            details: 
+              -
+                name: "utilidadNetaPatromonioNeto"
+                description: null
+                metric-value: "-4.05"
+                metric-type-code: "PORCENTAJE"
+              -
+                name: "evolucionVentas"
+                description: null
+                metric-value: "462.21"
+                metric-type-code: "PORCENTAJE"
+              -
+                name: "liquidezCorriente"
+                description: null
+                metric-value: "1"
+                metric-type-code: "RATIO"
+              -
+                name: "endeudamiento"
+                description: null
+                metric-value: "17.23"
+                metric-type-code: "RATIO"
+              -
+                name: "capitalTrabajo"
+                description: null
+                metric-value: "121162838.41"
+                metric-type-code: "ARS"
+              -
+                name: "rotacionInventarios"
+                description: null
+                metric-value: "414.09"
+                metric-type-code: "RATIO"
+              -
+                name: "comprasTotalesInsumos"
+                description: null
+                metric-value: "2994755103.15"
+                metric-type-code: "ARS"
+              -
+                name: "ventasMensualesPromedio"
+                description: null
+                metric-value: "220153439.34"
+                metric-type-code: "ARS"
+              -
+                name: "inmovilizacionBienesDeUso"
+                description: null
+                metric-value: "0.04"
+                metric-type-code: "RATIO"
+              -
+                name: "productividadBienesDeUsoAfectadosExportacion"
+                description: null
+                metric-value: "10.72"
+                metric-type-code: "RATIO"
+              -
+                name: "incidenciaAmortizacionesBienesDeUsoSobreCostos"
+                description: null
+                metric-value: "9.81"
+                metric-type-code: "RATIO"
+              -
+                name: "solvencia"
+                description: null
+                metric-value: "1.06"
+                metric-type-code: "RATIO"
+              -
+                name: "endeudamientoDiferido"
+                description: null
+                metric-value: "0.17"
+                metric-type-code: "RATIO"
+              -
+                name: "liquidezAcida"
+                description: null
+                metric-value: "0.7"
+                metric-type-code: "RATIO"
+              -
+                name: "ebitda"
+                description: null
+                metric-value: "652105152.41"
+                metric-type-code: "ARS"
+              -
+                name: "retornoActivoTotal"
+                description: null
+                metric-value: "-3.04"
+                metric-type-code: "RATIO"
+              -
+                name: "retornoPatrimonioNeto"
+                description: null
+                metric-value: "-27.63"
+                metric-type-code: "PORCENTAJE"
+              -
+                name: "rentabilidad"
+                description: null
+                metric-value: "-33.99"
+                metric-type-code: "PORCENTAJE"
+              -
+                name: "utilidadBrutaCostos"
+                description: null
+                metric-value: "172.06"
+                metric-type-code: "RATIO"
+              -
+                name: "ebitVentas"
+                description: null
+                metric-value: "18.98"
+                metric-type-code: "RATIO"
+              -
+                name: "ebit"
+                description: null
+                metric-value: "501456768.31"
+                metric-type-code: "ARS"
+              -
+                name: "ebitdaVentas"
+                description: null
+                metric-value: "24.68"
+                metric-type-code: "RATIO"
+              -
+                name: "plazoMedioCuentasACobrar"
+                description: null
+                metric-value: null
+                metric-type-code: "DIAS"
+              -
+                name: "plazoMedioCuentasAPagar"
+                description: null
+                metric-value: null
+                metric-type-code: "DIAS"
+          indicators-post-balance: 
+            sales: 
+              -
+                period: null
+                amount: null
+            purchases: 
+              -
+                period: null 
+                amount: null
+          parties:
+            -
+              taxpayer-number: "20284429037"
+              legal-name: "JUSTO HORACIO PERALTA"
+              is-shareholder: true
+              ownership-percentage : "95"
+              position: 
+                  code: 10
+                  description: "Gerente Titular"
+            -
+              taxpayer-number: "23061839119"
+              legal-name: "PERALTA JUSTO OSCAR MIGUEL"
+              is-shareholder: true
+              ownership-percentage : "5"
+              position: 
+                  code: 13
+                  description: "No especificada"
+          documents: 
+            -
+              period: 2026 
+              details: 
+                -
+                  code: 3
+                  description: "Certificado PyME"
+                  references: 
+                    -
+                      code: null
+    
+    webhooks-bureau-post-request-200-parcial:
+      value:
+        status-code: "RESULTADO_PARCIAL"
+        request-id: cbaae71f-56f3-4447-919f-f8fcb4098c00
+        taxpayer-number: "20043104579"
+        bureau: lufe
+        service: 
+          documents: 
+            -
+              period: 2024 
+              details: 
+                -
+                 code: 3
+                 description: "Certificado PyME"
+                 references: 
+                  -
+                    code: null
+        error:
+          services:
+            -
+              name: "indicadores"
+              details:
+                -
+                  code: "ER-404"
+                  message: "Not Found"
+        
+    webhooks-bureau-post-request-409:
+      value:
+        status-code: "ERROR_SERVICIO"
+        request-id: "7fae7f6a-6179-4028-8fb4-805000ffe71e"
+        taxpayer-number: "20044230179"
+        bureau: "lufe"
+        error: 
+          services:
+            -
+              name: "entidad"
+              details:
+                  -
+                    code: "ER-500"
+                    message: "Error interno"
+            -
+              name: "indicadores"
+              details: 
+                  -
+                    code: "ER-404"
+                    message: "Not Found"
+            -
+              name: "autoridades"
+              details: 
+                  -
+                    code: "ER-404"
+                    message: "Not Found"
+            -
+              name: "documentos"
+              details: 
+                  -
+                    code: "noComparteInformacion"
+                    message: "La entidad con el CUIT indicado existe pero no comparte informacion"
+        
+    webhooks-bureau-post-response-409:
+      value:
+        Code: "ER-409" 
+        Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f134"
+        Message: "Conflict"
+        Errors:
+          - 
+            ErrorCode: "xxx"
+            Message: "error funcional del consumidor"
+            Path: "/v1/webhooks/bureau"    
+    
+    lectura-documentos-post-request-200:
+      value:
+        idDocuLecturaDocumentosIA: "dTtsgOL1BvIiECRVnjUv"
+        idLecturaDocumentosIA: "kUlb50wmvhhUqsooI5Ip"
+        idSolicitud: "c1d29e5e-0d01-11f1-bfc3-e6dba2f54c1c"
+        documentoTipo: "DNI"
+        estado: "FINALIZADO"
+        evento: "NUEVO_DOCUMENTO"
+        partesTotal: "1"
+        datosExtraidos:
+          apoderado:
+            apellido: "Perez"
+            cuit: "20123456789"
+            documentoPersonal: "12345678"
+            domicilio:
+              calle: "San Martin"
+              ciudad: "Rosario"
+              codigoPostal: "2000"
+              departamento: "B"
+              numero: "1234"
+              pais: "Argentina"
+              piso: "4"
+              provincia: "Santa Fe"
+            fechaNacimiento: "1980-05-15"
+            nombre: "Juan"
+          autoridades:
+            - apellido: "Gomez"
+              cuit: "27123456789"
+              nombre: "Maria"
+          certificacionBalance:
+            oblea: "OBL-123"
+          controlPaginado:
+            numeracionDoc: "1/5"
+          convocatoria:
+            fecha: "2023-10-20"
+            medio: "Boletín Oficial"
+          datoFirma:
+            - cargo: "Presidente"
+              firma: true
+              nombreYApellidod: "Carlos Lopez"
+          datosBalance:
+            cuit: "30123456789"
+            razonSocial: "Empresa S.A."
+          datosConsorcio:
+            apellidoYNombreAdministrador: "Lopez, Carlos"
+            cuit: "30555555551"
+            direccion:
+              administrador:
+                cuit: "20111111112"
+                direccion:
+                  calle: "San Martin"
+                  ciudad: "Rosario"
+                  codigoPostal: "2000"
+                  departamento: "B"
+                  numero: "1234"
+                  pais: "Argentina"
+                  piso: "4"
+                  provincia: "Santa Fe"
+                nombreYApellido: "Carlos Lopez"
+            asambleaConstitucion:
+              asambleaAprobada: "Si"
+              fecha: "2010-05-10"
+              notificaciones: "Por carta documento"
+              ordenDelDia: "Constitución de consorcio"
+              quorum: "100%"
+              tipo: "Extraordinaria"
+              totalPropietarios: "20"
+            calle: "Av. Cabildo"
+            ciudad: "CABA"
+            codigoPostal: "1428"
+            datosEscribano:
+              firmaEscribano: true
+              nombreYApellido: "Jose Rodriguez"
+              nroMatricula: "7788"
+            departamento: "A"
+            detalleUnidades:
+              - departamento: "A"
+                metros: "45.5"
+                numero: "1"
+                piso: "1"
+            lugarYFechaOtorgamiento:
+              fecha: "2023-10-15"
+              lugar: "CABA"
+              numero: "123"
+              pais: "Argentina"
+              piso: "1"
+              provincia: "Buenos Aires"
+            unidadesFuncionales:
+              totalUnidades: "20"
+            domicilioConstituido:
+              calle: "San Martin"
+              ciudad: "Rosario"
+              codigoPostal: "2000"
+              departamento: "B"
+              numero: "1234"
+              pais: "Argentina"
+              piso: "4"
+              provincia: "Santa Fe"
+            emailConsorcio: "administracion@consorcio.com"
+            nombre: "Consorcio Av Cabildo 1000"
+            nroMatricula: "9999"
+            razonSocial: "Consorcio Copropietarios Cabildo"
+          datosDoc:
+            legajo: "LEG-001"
+            matricula: "MAT-998"
+          datosEncuentro:
+            entidad: "Asamblea General"
+            fechaActo: "2023-11-01"
+            hora:
+              hour: 14
+              minute: 30
+              nano: 0
+              second: 0
+            motivoAsamblea: "Aprobación de balance"
+            tipoAsambleas: "Ordinaria"
+          datosExpensas:
+            fechaDoc: "2023-10-01"
+            periodo: "Octubre 2023"
+          datosPersonales:
+            - apellidoDni: "Perez"
+              documentoDni: "12345678"
+              domicilioDni:
+                dorso: true
+                ejemplarDni: "A"
+                fechaNacimientoDni: "1980-05-15"
+                fechaVencimiento: "2030-05-15"
+                frente: true
+                nacionalidadDni: "Argentina"
+                nombreDni: "Juan"
+                nroTramite: "00123456789"
+                tipoDoc: "DNI"
+          encabezadoTitulo:
+            tituloDoc: "Estatuto Social"
+          enumeracion:
+            consecutivaPaginado: true
+            paginado:
+              - "1"
+            portada:
+              - "Portada 1"
+          lugar:
+            ciudadActo: "CABA"
+            direccionActo: "Av. Corrientes 1234"
+            provincia: "Buenos Aires"
+          matriculaEscribano: "4567"
+          nombreLegalRubro:
+            domicilioLegal:
+              calle: "San Martin"
+              ciudad: "Rosario"
+              codigoPostal: "2000"
+              departamento: "B"
+              numero: "1234"
+              pais: "Argentina"
+              piso: "4"
+              provincia: "Santa Fe"
+            objetoSocial: "Venta de indumentaria"
+            razonSocial: "Moda S.A."
+          numeracion:
+            folio: "12"
+            libro: "3"
+          objetoYAlcance:
+            detalle: "Poder General"
+            legalizacionApostilla:
+              nroProtocolo: "PROT-001"
+              sello: true
+            limitaciones: "Hasta $1.000.000"
+            tipoFacultad: "Administración"
+          ordenDelDia:
+            - descripcion: "Aprobación de memoria"
+              numero: "1"
+          otorgante:
+            cuitSociedad: "30987654321"
+            denominacionSocial: "Inversiones S.A."
+            domicilioSocial:
+              calle: "San Martin"
+              ciudad: "Rosario"
+              codigoPostal: "2000"
+              departamento: "B"
+              numero: "1234"
+              pais: "Argentina"
+              piso: "4"
+              provincia: "Santa Fe"
+          periodoBalance:
+            fechaFinal: "2023-12-31"
+            fechaInicio: "2023-01-01"
+          quorum:
+            convocados: "50"
+            presentes: "45"
+          tipoDoc:
+            tipoEstatuto: "S.A."
+            tipoPoder: "Especial"
+          unidadesFuncionales:
+            detalle:
+              - totalUnidades: "10"
+                unidades:
+                  - "UF 1"
+          vigenciaEstatuto:
+            fechaConformacion: "2020-01-01"
+            fechaFin: "2119-12-31"
+          vigenciaMandato:
+            fechaFinDesignado: "2025-12-31"
+            fechaInicioDesignado: "2023-01-01"
+        validacionesResultado:
+            valido: true
+            alertas:
+              accionRequerida: false
+              camposAfectados:
+                - "fechaNacimiento"
+                - "cuit"
+              codigo: "WARN-01"
+              motivo: "Formato de fecha dudoso"
+              severidad:
+                clave: "MEDIA"
+                codigo: "2"
+            errores:
+              accionRequerida: true
+              camposAfectados:
+                - "cuit"
+              codigo: "ERR-05"
+              motivo: "CUIT inválido"
+              severidad:
+                clave: "ALTA"
+                codigo: "3"
+            resumen:
+              alertasCantidadTotal: "1"
+              camposValidadosCantidad: "50"
+              erroresCantidadTotal: "0"
+
+      
+    lectura-documentos-post-reponse-200:
+     value:
+      status: "200"
+      code: "OK"
+    
+    post-debit-card-201-request:
+      value:
+        "operation_id": "e4ec01bf-1538-4f00-94f9-96c9214d9879"
+        "transaction_status": "COMPLETED"
+        "client":
+          "document_type": "01"
+          "document_number": "30123456"
+        "result":
+          "accounts":
+            -
+              "account_type": "4"
+              "currency_id": "80"
+              "account_status": "OK"
+              "cbu": "4850590940090418135202"
+              "account_number": "400123456002"
+              "service": "ALTA_CBU_PRISMA"
+              "error_code": null
+              "error_description": null
+            -
+              "account_type": "4"
+              "currency_id": "2"
+              "account_status": "OK"
+              "cbu": "2850590940090418135201"
+              "account_number": "200123456001"
+              "service": "ALTA_CBU_PRISMA"
+              "error_code": null
+              "error_description": null
+            -
+              "account_type": "4"
+              "currency_id": "80"
+              "account_status": "OK"
+              "cbu": "4850590940090418135202"
+              "account_number": "400123456002"
+              "service": "ALTA_CBU_COELSA"
+              "error_code": null
+              "error_description": null
+            -
+              "account_type": "4"
+              "currency_id": "2"
+              "account_status": "OK"
+              "cbu": "2850590940090418135201"
+              "account_number": "200123456001"
+              "service": "ALTA_CBU_COELSA"
+              "error_code": null
+              "error_description": null
+          "card":
+              "masked_card_number": "451764XXXXXX3295"
+              "member": "001"
+              "expiration_date": "3204"
+              "client_class": "4"
+              "card_status": "A"
+              "service": "CONFIRMACION_TD_COBIS"
+              "error_code": null
+              "error_description": null
+
+    post-debit-card-409-request:
+      value:
+        "operation_id": "e4ec01bf-1538-4f00-94f9-96c9214d9879"
+        "transaction_status": "FAILED"
+        "client":
+          "document_type": "01"
+          "document_number": "30123456"
+        "result":
+          "accounts":
+            -
+              "account_type": "4"
+              "currency_id": "80"
+              "account_status": "ERROR"
+              "cbu": "4850590940090418135202"
+              "account_number": "400123456002"
+              "service": "ALTA_CBU_PRISMA"
+              "error_code": "290011"
+              "error_description": "Fallo en alta CBU prisma"
+          "card":
+              "masked_card_number": "451764XXXXXX3295"
+              "member": "001"
+              "expiration_date": "3204"
+              "client_class": "4"
+              "card_status": "A"
+              "service": "CONFIRMACION_TD_COBIS"
+              "error_code": "null"
+              "error_description": "Fallo en alta de tarjeta"
+
+    post-debit-card-409-response:
+      value:
+        Code: "ER-409" 
+        Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f134"
+        Message: "Conflict"
+        Errors:
+          - 
+            ErrorCode: "422"
+            Message: "A solicitação foi bem formada, mas não pôde ser processada devido à lógica de negócios específica da solicitação"
+            Path: "/v1/webhooks/debit-card/issuances" 
+
+
+    webhooks-veraz-post-request:
+      value:
+        request-id: "1fc3b629-cf8e-42ac-9f89-92da324d5f16"
+        bureau: "veraz"
+        status-code: "PROCESADO"
+        document-type: "DNI"
+        company-taxpayer-number: 23191249
+        validations:
+        - details:
+            code: "409"
+            message: "CC_ERROR_003"
+          errors:
+            - service:
+                name: "get-retrieve-veraz"
+                errors:
+                  - code: "ERR-409"
+                    message: "CC_ERROR_003"
+        result:
+          x6c:
+            transaction-id: "3fd7ad02-938b-485b-ace1-fd3af1fe0674"
+            original-transaction-id: "3fd7ad02-938b-485b-ace1-fd3af1fe0674"
+            evaluation:
+              status: "completed"
+              category-code: "APROBAR"
+              category-details:
+                - "Valida Identidad."
+              customer:
+                document-number: "31356207"
+                full-name: "LUCERO,EMILIO MARTIN"
+                gender: "M"
+                risk-score: 501
+                score-population: "OK"
+                income-predictor-score: "R5"
+            cache-policy:
+              is-from-cache: true
+              updated-date: "2026-08-26"
+          x6l:
+            transaction-id: "5a096785-0c1a-4d8c-90d3-43c247555668"
+            original-transaction-id: "5a096785-0c1a-4d8c-90d3-43c247555668"
+            evaluation:
+              status: "completed"
+              category-code: "APROBAR"
+              category-details:
+                - "Valida Identidad."
+              customer:
+                document-number: "31356207"
+                full-name: "LUCERO,EMILIO MARTIN"
+                gender: "M"
+                taxpayer-number: "20313562078"
+                addresses:
+                  - "PJE PADRE LAMONACA-2714--5000-CORDOBA"
+                  - "CONRADO NALE ROXLO-659--5000-CORDOBA"
+                  - "HOMERO-2574-1-5000-CORDOBA"
+                type: "Cliente Nuevo"
+                document-version: "A"
+              credit-cards:
+                oldest-months-count: 170
+                active-maximum-limit-amount: "123461074.00"
+                has-normal-status-last-twelve-months: true
+                has-financed-balance-limit-ratio: true
+                has-peerbank-active: true
+                exigible-amount: "3730076.00"
+                competitor-maximum-limit-amount: "11223734.00"
+                competitor-minimum-payment-amount: "4030824.00"
+              current-accounts:
+                oldest-months-count: 0
+                has-worst-status-twelve-months: true
+                is-average-usage-under-limit: false
+                average-balance-amount: "0.00"
+              loans:
+                refinanced-count: 0
+                unsecured:
+                  exigible-amount: "0.00"
+                pledge:
+                  exigible-amount: "0.00"
+                mortgage:
+                  exigible-amount: "0.00"
+              bureau:
+                worst-status-code: "1"
+              bcra:
+                worst-situation-twelve-months-code: "1"
+                worst-situation-three-months-code: "1"
+              legal-situation:
+                has-delinquency-observations: true
+                lawsuits:
+                  active-executive-count: 0
+                  executive-five-years-count: 0
+                  ordinary-count: 0
+                  sixty-months-count: 0
+                bankruptcy:
+                  requests-last-year-count: 0
+                  requests-five-years-count: 0
+                  preventive-count: 0
+                  decreed-count: 0
+                  sixty-months-count: 0
+                inhibitions:
+                  asset-count: 0
+                  other-count: 0
+                  judicial-count: 0
+              cheqs:
+                unpaid-bounced-twenty-four-months-amount: "0.00"
+                paid-bounced-twenty-four-months-amount: "0.00"
+                paid-bounced-twenty-four-months-count: 0
+                unpaid-twenty-four-months-amount: "0.00"
+                paid-twenty-four-months-count: 0
+            cache-policy:
+              is-from-cache: true
+              updated-date: "2026-08-26"
+          preescrining:
+            transaction-id: "40a0867e-278b-483d-ad2d-bde04bd12f89"
+            original-transaction-id: "40a0867e-278b-483d-ad2d-bde04bd12f89"
+            evaluation:
+              status: "completed"
+              category-code: "APROBAR"
+              category-details:
+                - "Valida Identidad."
+              customer:
+                document-number: "31356207"
+                full-name: "LUCERO,EMILIO MARTIN"
+                gender: "M"
+                birth-date: "1985-01-26"
+                risk-score: 566
+                income-predictor-score: "R5"
+                is-validated: true
+                is-hit: true
+              products:
+                oldest-months-count: 170
+                active-count: 1
+                active-balance-amount: "3730076.00"
+                active-limit-amount: "11223734.00"
+                active-exigible-amount: "3730076.00"
+                active-inactivity-months-count: 1
+                opened-six-months-count: 0
+                overdue-count: 0
+                overdue-balance-amount: "0.00"
+                overdue-worst-status-six-months-code: "1"
+              credit-cards:
+                oldest-months-count: 170
+                active-maximum-limit-amount: "11223734.00"
+                limit-amount: "11223734.00"
+                maximum-limit-amount: "11223734.00"
+                financed-balance-amount: "0.00"
+                installments-balance-amount: "7301365.00"
+                active-count: 1
+                movements-six-months-count: 1
+                active-balance-amount: "3730076.00"
+                average-balance-three-months-amount: "11223734.00"
+                average-balance-six-months-amount: "11223734.00"
+                active-inactivity-months-count: 1
+                opened-six-months-count: 0
+                overdue-count: 0
+                overdue-balance-amount: "0.00"
+                overdue-worst-status-six-months-code: "1"
+                exigible-amount: "3730076.00"
+              current-accounts:
+                oldest-months-count: 0
+                active-count: 0
+                movements-six-months-count: 0
+                active-balance-amount: "0.00"
+                active-overdraft-limit-amount: "0.00"
+                exigible-amount: "0.00"
+                average-balance-three-months-amount: "0.00"
+                average-balance-six-months-amount: "0.00"
+                maximum-overdraft-limit-amount: "0.00"
+                overdue-count: 0
+                active-overdraft-amount: "0.00"
+                worst-status-six-months-code: "-"
+                active-inactivity-months-count: 0
+                opened-six-months-count: 0
+              loans:
+                unsecured:
+                  oldest-months-count: 0
+                  exigible-amount: "0.00"
+                  active-count: 0
+                  active-balance-amount: "0.00"
+                  active-limit-amount: "0.00"
+                  active-inactivity-months-count: 0
+                  opened-six-months-count: 0
+                  past-due-balance-count: 0
+                  past-due-balance-amount: "0.00"
+                  worst-status-six-months-code: "-"
+                pledge:
+                  oldest-months-count: 0
+                  exigible-amount: "0.00"
+                  active-count: 0
+                  active-balance-amount: "0.00"
+                  active-limit-amount: "0.00"
+                  active-inactivity-months-count: 0
+                  opened-six-months-count: 0
+                  past-due-balance-count: 0
+                  past-due-balance-amount: "0.00"
+                  worst-status-six-months-code: "-"
+                mortgage:
+                  oldest-months-count: 0
+                  exigible-amount: "0.00"
+                  active-count: 0
+                  active-balance-amount: "0.00"
+                  active-limit-amount: "0.00"
+                  active-inactivity-months-count: 0
+                  opened-six-months-count: 0
+                  past-due-balance-count: 0
+                  past-due-balance-amount: "0.00"
+                  worst-status-six-months-code: "-"
+              bureau:
+                current-status-code: "-"
+                twelve-months-status-code: "1"
+              bcra:
+                worst-status-twelve-months-code: "1"
+                worst-status-last-month-code: "-"
+              legal-situation:
+                has-delinquency-six-months: true
+                lawsuits:
+                  ordinary-count: 0
+                  executive-count: 0
+                bankruptcy:
+                  requests-count: 0
+                  preventive-count: 0
+                  decreed-count: 0
+                inhibitions:
+                  asset-count: 0
+                  judicial-count: 0
+                  other-count: 0
+              cheqs:
+                unpaid-bounced-twelve-months-count: 0
+            cache-policy:
+              is-from-cache: true
+              updated-date: "2026-08-26"
+
+    webhooks-veraz-post-response-409:
+      value:
+        Code: "ER-409" 
+        Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f134"
+        Message: "Conflict"
+        Errors:
+          - 
+            ErrorCode: "xxx"
+            Message: "error funcional del consumidor"
+            Path: "/v1/webhooks/veraz"    
+    
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: apikey  # Change this to the header or query parameter name you use for the API key
+      in: header       # Change this to "query" if using a query parameter

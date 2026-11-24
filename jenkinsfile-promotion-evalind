@@ -1,0 +1,108 @@
+library identifier: 'libs-soporte@develop', retriever: modernSCM(
+  [$class: 'GitSCMSource',
+   remote: 'git@SRVCBGIT-TEST.MACRO.COM.AR:DevOps/sharedLibrary.git',
+   credentialsId: 'jenkins-ssh-key'])
+
+pipeline{
+    agent {
+        label 'tool3'
+    }
+    environment {
+             //3. NOTIFICATIONS
+           //EMAIL="devopstool_test@macro.com.ar"                                                // CASILLA DESDE DONDE SE ENVIAN LOS MAILS.
+            //SENDTOEMAIL= "federicogarcia@macro.com.ar, agustinawegman@macro.com.ar"                   // DESTINATARIOS DE MAIL 
+
+            CREDENCIAL_NEXUS="Nexus_CalificacionConstante_Test"
+            
+            SERVICIO="EvaluaIndividuos"
+            
+            ENV_NAME="test"
+            DEFAULT_SUBJECT="${ENV_NAME} - ${SERVICIO} - promoción de artefacto a PRE "
+
+            
+            NEXUS_URL="http://172.31.219.113:8081"
+            NEXUS_REPOSITORY="CC_MEBA_Test"
+            NEXUS_GROUP="EvaluaIndividuos"
+            URL_NEXUS_MEBA_TEST = "CC_MEBA_Test"
+            URL_NEXUS_MEBA_PROD = "CC_MEBA_Prod"
+            //DESTINO="\\\\SRVDVTO5AP-TEST\\prueba-compartido"
+            webhookURL="https://chat.googleapis.com/v1/spaces/AAAAvJPchAc/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=kQsC8ZYX_Cwcc6LaoV2Rr1jO8BqGG2lUaIHjUeOLacA"
+            NOTIFICATION_WEBHOOK="https://chat.googleapis.com/v1/spaces/AAAAL_lAOOI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=-ut1JNrCxzUQG-oEgjmYVeRh_aQhtfSXA35qbZDpwBA"
+
+
+        }
+        
+    stages{
+        
+        stage("Select artifact from Nexus-test"){
+            steps {
+                echo '-------------------------------------------------------'
+                echo '             MenuVersion'
+                echo '-------------------------------------------------------'
+                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: CREDENCIAL_NEXUS, usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD']]) 
+                {
+                    script{
+                       output = sh (returnStdout: true, script: "curl -X GET -u '${USER_NAME}:${PASSWORD}' '${NEXUS_URL}/service/rest/v1/search?repository=${URL_NEXUS_MEBA_TEST}&group=/${NEXUS_GROUP}&direction=desc&sort=name'")                    
+                        echo "${output}"
+                        def properties = readJSON text: output 
+                        VER = properties.items.name.take(8)
+                        timeout(time: 360, unit: 'SECONDS') // PASADOS LOS 60' SE CIERRA EL MENU Y SE ABORTA EL PIPELINE 
+                        {
+                            script{
+                                INPUT_PARAMS = input message: 'Seleccion de version', ok: 'Siguiente',
+                                parameters: [
+                                    choice(name:'VERSIONES_ARTIFACT', choices: VER, description: 'Versiones disponibles')
+                                ]
+                                env.VERSION_SELECCIONADA = "${INPUT_PARAMS}"
+                                echo "'${VERSION_SELECCIONADA}'"
+                                env.FILEZIP = "${VERSION_SELECCIONADA}".split("/")[1]
+                                echo "filezip: ${FILEZIP}"
+                                env.RELEASE = "${FILEZIP}"
+                                
+                                sh '''
+                                wget ${NEXUS_URL}/repository/${URL_NEXUS_MEBA_TEST}/${NEXUS_GROUP}/${FILEZIP} --user ${USER_NAME} --password ${PASSWORD}
+                                pwd
+                                ls -las
+                                '''
+                            }
+                        }
+
+                        } //c.script
+                    }
+
+                } //c.step
+        } //c.stage Pull from nexus
+
+        stage("Promotion to Nexus-Prod"){
+            steps {
+                echo ' ------------------------------------------------'
+                echo ' Promotion artifact from Nexus-Test to Nexus-Prod                        '
+                echo ' ------------------------------------------------'
+                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: CREDENCIAL_NEXUS, usernameVariable: 'USER_NAME', passwordVariable: 'PASSWORD']]) 
+                {
+                    script{
+                         env.NEXUS_TARGET="${NEXUS_URL}/repository/${URL_NEXUS_MEBA_PROD}/${NEXUS_GROUP}/${FILEZIP}"
+                        sh '''
+                            curl --fail -u "${USER_NAME}:${PASSWORD}" --upload-file "${FILEZIP}" "${NEXUS_TARGET}"
+                            '''
+                        echo "promoción de artefacto en nexus-prod realizada"
+                    }
+            }
+
+         }
+        } //c.stage promotion
+        
+    }
+    post {
+        always {
+            script{
+                notifications2.call(NOTIFICATION_WEBHOOK)        
+            }
+        } // c.always
+        cleanup{
+            echo 'Drop Files on local Repo'
+            deleteDir()
+        }
+    } // c.post
+} //c.pipeline
+

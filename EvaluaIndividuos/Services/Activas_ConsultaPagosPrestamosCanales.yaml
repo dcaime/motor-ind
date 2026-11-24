@@ -1,0 +1,144 @@
+openapi: 3.0.0
+info:
+  title: ACTIVAS-API
+  description: |
+    Servicios de integración para Banco Macro-ESB
+  version: "1.0"
+servers:
+- url: /
+tags:
+- name: Activas
+  description: Grupo de Ejecución
+paths:
+  /services/Activas_ConsultaPagosPrestamosCanales/V1/R0:
+    get:
+      tags:
+      - Activas
+      summary: ConsultaPagosPrestamosCanales
+      description: ConsultaPagosPrestamosCanales
+      operationId: Activas_ConsultaPagosPrestamosCanales
+      parameters:
+      - name: IdCliente
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: Fecha
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Response OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConsultaPagosPrestamosCanalesResponseType'
+        default:
+          description: Respuesta estándar por errores (técnicos o de negocio)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroresEstandar'
+components:
+  schemas:
+    ConsultaPagosPrestamosCanalesResponseType:
+      type: object
+      properties:
+        Destino:
+          type: string
+        Estado:
+          type: string
+        FechaAlta:
+          type: string
+        FechaNovedad:
+          type: string
+        FormaPago:
+          type: string
+        Moneda:
+          type: integer
+        MontoCapitalSolicitado:
+          type: number
+          format: float
+        MontoCuota:
+          type: number
+          format: float
+        NumeroCliente:
+          type: integer
+        NumeroPrestamo:
+          type: string
+        Plazo:
+          type: integer
+        Secuencial:
+          type: integer
+        Tasa:
+          type: number
+          format: float
+        TipoCartera:
+          type: string
+        TipoNovedad:
+          type: string
+        TipoPrestamo:
+          type: string
+    ErroresEstandar:
+      required:
+      - fault
+      type: object
+      properties:
+        fault:
+          type: object
+          properties:
+            code:
+              type: array
+              items:
+                oneOf:
+                - type: string
+                  default: Sender
+                  enum:
+                  - Sender
+                  - Receiver
+                - type: object
+                  properties:
+                    subcode:
+                      type: string
+                      example: "400"
+            detail:
+              $ref: '#/components/schemas/ErroresEstandarDetail'
+            reason:
+              type: string
+              default: ExecutionFailed
+              enum:
+              - Unauthorized
+              - ExecutionFailed
+              - DestinationUnavailable
+              - NotFound
+              - BadRequest
+    ErroresEstandarDetail:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Validation failed
+        source:
+          $ref: '#/components/schemas/ErroresEstandarDetailSource'
+    ErroresEstandarDetailSource:
+      type: object
+      properties:
+        class:
+          type: string
+          example: Activas_ConsultaPagosPrestamosCanales
+        location:
+          type: string
+          example: ar.com.macro.esb.services.activas.Activas_ConsultaPagosPrestamosCanales
+        method:
+          type: string
+          example: Activas_ConsultaPagosPrestamosCanales_PrepareFaultResponse
+        version:
+          type: string
+          example: "1.0"

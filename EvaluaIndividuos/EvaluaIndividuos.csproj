@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Model\PoliticaEvaluaIndividuosFull.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Services\Activas_ConsultaPagosPrestamosCanales.yaml" />
+    <None Remove="Services\api-bureaus_v1.0.6 .yaml" />
+    <None Remove="Services\api-oauth-access_v1.0.yaml" />
+    <None Remove="Services\api-webhooks_v1.9.1.yaml" />
+    <None Remove="Services\Clientes_ConsultaConstanciaInscripcionAFIP.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <OpenApiReference Include="Services\Activas_ConsultaPagosPrestamosCanales.yaml" CodeGenerator="NSwagCSharp" />
+    <OpenApiReference Include="Services\api-bureaus_v1.0.6 .yaml" />
+	  <OpenApiReference Include="Services\api-oauth-access_v1.0.yaml" />
+	  <OpenApiReference Include="Services\api-webhooks_v1.9.1.yaml" />
+    <OpenApiReference Include="Services\Clientes_ConsultaConstanciaInscripcionAFIP.yaml" CodeGenerator="NSwagCSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Dapper" Version="2.1.79" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
+	  <PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="10.0.8">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	  <PackageReference Include="NLog" Version="6.0.6" />
+	  <PackageReference Include="Carter" Version="8.2.1" />
+	  <PackageReference Include="NLog.Extensions.Logging" Version="6.1.0" />
+	  <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
+	  <PackageReference Include="NSwag.ApiDescription.Client" Version="14.7.1">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Serilog" Version="4.3.1" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+	  <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
+	  <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\Clientes_ConsultaConstanciaInscripcionAFIP\" />
+  </ItemGroup>
+
+</Project>

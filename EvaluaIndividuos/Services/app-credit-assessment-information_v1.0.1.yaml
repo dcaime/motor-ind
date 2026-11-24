@@ -1,0 +1,2425 @@
+openapi: 3.0.0
+info:
+  title: Credit-Assessment-Information
+  description: API de consulta al bureau crediticio el perfil crediticio completo de una persona física.
+  version: 1.0.1
+  x-ns: bureaus
+  x-ns-path: /v1/credit-assessment-information
+
+servers:
+  - url: /v1/credit-assessment-information
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Credit-Assessment-Information
+    description: Consulta de evaluación crediticia 
+
+paths:
+# ------------------------------------------------------------------
+# GET - Consulta de evaluación crediticia (Bureau Assessment)
+# ------------------------------------------------------------------
+  /retrieve/siisa:
+    get:
+      tags:
+        - Credit-Assessment-Information
+      summary: Obtiene la evaluación crediticia de una persona por SIISA
+      description: Consulta el perfil crediticio completo de una persona física en el bureau SIISA, incluyendo historial de morosidades, cheques BCRA, scoring y variables sumarizadas.
+      operationId: get-retrieve-siisa
+      parameters:
+        - name: x-request-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "e7c9d173-64c2-4b1b-91f3-8c6d8a8e7d9c"
+          description: Identificador único de la transacción (UUIDv4)  
+        - name: taxpayer-number
+          in: query
+          required: false
+          schema:
+            type: string
+            nullable: true
+            pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          examples: 
+            200-OK: 
+              value: "20123456780"
+            409-ERR: 
+              value: "20123456790"
+          description: CUIL de la persona a consultar sin guiones. Enviar vacío si la consulta es por documento o apellido y nombre.  
+        - name: document-number
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d*$'
+            nullable: true
+            example: null
+          description: Número de documento de identidad. Enviar vacío si la consulta es por CUIL o apellido y nombre.  
+        - name: full-name
+          in: query
+          required: false
+          schema:
+            type: string
+            nullable: true
+            example: null
+          description: Apellido y nombre separados por espacios. Debe coincidir exactamente con la base. Enviar vacío si la consulta es por CUIL o documento.  
+        - name: gender
+          in: query
+          required: false
+          schema:
+            type: string
+            nullable: true
+            enum: 
+              - "M"
+              - "F"
+            example: "M"
+          description: Sexo de la persona. Opcional para búsquedas por DNI o CUIL para descartar duplicados.  
+        - name: payroll-income-amount
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d+\.\d+$'
+            example: "0.00"
+          description: Información de sueldos informada por la entidad (BAC). Enviar 0 si no se consulta BAC.
+        - name: employer-taxpayer-number
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+            nullable: true
+            example: null
+          description: CUIT del empleador (BAC). Enviar vacío si no se consulta BAC. 
+        - name: operation-date-time
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$'
+            nullable: true
+          examples: 
+            200-409:
+              value: "2025-03-30T10:00:00Z"
+          description: Fecha y hora de la operación (BAC). Usar fecha actual si no se consulta BAC.
+        - name: operation-type
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+            enum: 
+              - 0 #No consulta BAC
+              - 1 #Crédito Dirigido
+              - 2 #Crédito Efectivo
+              - 3 #Tarjeta de Crédito
+            example: 0
+          description: Tipo de operación BAC
+        - name: operation-installment-count
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            nullable: true
+            example: null
+          description: Cantidad de cuotas de la operación (BAC). Enviar 0 si no se consulta BAC.
+        - name: operation-installment-amount
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d+\.\d+$'
+            nullable: true
+            example: "0.00"
+          description: Monto de cada cuota (BAC). Enviar 0 si no se consulta BAC
+        - name: operation-total-amount
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d+\.\d+$'
+            nullable: true
+            example: "0.00"
+          description: Monto total de la operación (BAC). Enviar 0 si no se consulta BAC.
+
+      responses:
+        '200':
+          description: Evaluación crediticia obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get-retrieve-siisa-response'
+              examples:
+                200-OK:
+                  $ref: '#/components/examples/200-get-retrieve-siisa-response'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          description: Conflicto de negocio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                409-conflict-error:
+                  $ref: '#/components/examples/409-get-retrieve-siisa-error'
+        '429':
+          $ref: '#/components/responses/tooManyRequests'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+        '502':
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'
+          
+  # ------------------------------------------------------------------
+  # GET - Consulta de evaluación crediticia (Bureau Nosis)
+  # ------------------------------------------------------------------        
+          
+  /retrieve/nosis:
+    get:
+      tags:
+        - Credit-Assessment-Information
+      summary: Obtiene la evaluación crediticia de una persona por nosis
+      description: Consulta el perfil crediticio completo de una persona física en el bureau nosis, incluyendo historial de morosidades, cheques BCRA, scoring y variables sumarizadas.
+      operationId: get-retrieve-nosis
+      parameters:
+        - name: x-request-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+            pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+            example: "e7c9d173-64c2-4b1b-91f3-8c6d8a8e7d9c"
+          description: Identificador único de la transacción (UUIDv4)  
+        - name: taxpayer-number
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^\d*$'
+          examples: 
+            200-OK: 
+              value: "30715190342"
+            409-ERR: 
+              value: "30715190343"
+          description: CUIL/CUIT/CDI de documento
+        - name: variable-group-id
+          in: query
+          required: true
+          schema:
+            type: string
+          examples: 
+            200-409:
+              value: "VR"
+          description: Tipo de variables
+        - name: legal-name
+          in: query
+          required: false
+          schema:
+            type: string
+            nullable: true
+            example: null
+          description: Razon Social
+        - name: gender
+          in: query
+          required: false
+          schema:
+            type: string
+            nullable: true
+            enum: 
+              - "M"
+              - "F"
+            example: "M"
+          description: Sexo de la persona. 
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get-retrieve-nosis-response'
+              examples:
+                200-OK:
+                  $ref: '#/components/examples/200-get-retrieve-nosis-response'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          description: Conflicto de negocio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                409-conflict-error:
+                  $ref: '#/components/examples/409-get-retrieve-nosis-error'
+        '429':
+          $ref: '#/components/responses/tooManyRequests'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+        '502':
+          $ref: '#/components/responses/badGateway'
+        '503':
+          $ref: '#/components/responses/serviceUnavailable'
+        '504':
+          $ref: '#/components/responses/gatewayTimeout'      
+
+components:
+  schemas:
+
+# ══════════════════════════════════════════════════════════════════════
+# RESPONSE PRINCIPAL
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-response:
+      type: object
+      properties:
+        document-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de documento de la persona consultada (eco del request).
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL de la persona consultada (eco del request).
+        full-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido y nombre de la persona consultada (eco del request).
+        is-credit-history-requested:
+          type: boolean
+          example: true
+          description: Indica si se solicitó el historial crediticio BAC (PideBAC).
+        is-employment-data-requested:
+          type: boolean
+          example: true
+          description: Indica si se solicitaron los datos laborales BAC (PideDatosLaboral).
+        is-valid-user:
+          type: boolean
+          example: true
+          description: Indica si el usuario consultante es válido ante SIISA (UsuarioOK).
+        duplicated-parties:
+          type: array
+          description: Lista de personas duplicadas detectadas en la consulta.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-duplicated-party-data'  
+        has-credit-bureau-search:
+          type: boolean
+          nullable: true
+          description: Indica si se consultaron las centrales de crédito (buscaCentrales).
+          example: true
+        persons:
+          type: array
+          description: Lista de personas encontradas asociadas a los datos de búsqueda.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-person-data'  
+        addresses:
+          type: array
+          description: Lista de domicilios registrados de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-address-data'
+        phones:
+          type: array
+          description: Teléfonos asociados al domicilio.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-phone-data'    
+        relatives:
+          type: array
+          description: Lista de familiares registrados de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-relative-data'
+        employers:
+          type: array
+          description: Lista de empleadores registrados de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-employer-data'    
+        employment-records:
+          type: array
+          description: Lista de registros laborales detallados de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-employment-record-data'
+        delinquencies:
+          type: array
+          description: Lista de morosidades vigentes de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-delinquency-data'
+        historical-delinquencies:
+          type: array
+          description: Lista de morosidades históricas de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-historical-delinquency-data'
+        bcra-delinquencies:
+          type: array
+          description: Lista de morosidades BCRA vigentes de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-bcra-delinquency-data'    
+        bcra-historical-delinquencies:
+          type: array
+          description: Lista de morosidades BCRA históricas de la persona.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-bcra-historical-delinquency-data'
+        bcra-cheqs:
+          type: array
+          description: Resumen de cheques rechazados BCRA.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-bcra-cheq-data'   
+        bcra-cheq-details:
+          type: array
+          description: Detalle de cheques rechazados BCRA.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-bcra-cheq-detail-data'    
+        inquiries:
+          type: array
+          description: Contadores de consultas realizadas al bureau en distintos períodos.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-inquiry-data'    
+        socio-economic-models:
+          type: array
+          description: Modelos socioeconómicos calculados (primera instancia, sin montos)
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-socio-economic-model-data'
+        insolvency-proceedings:
+          type: array
+          description: Lista de concursos y quiebras registrados.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-insolvency-proceeding-data'    
+        validations:
+          type: array
+          description: Lista de preguntas de validación de identidad.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-validation-data'    
+        credit-activities:
+          type: array
+          description: Lista de actividades crediticias (OyCs).
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-credit-activity-data' 
+        frauds:
+          type: array
+          description: Lista de alertas de fraude registradas.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-fraud-data'   
+        recent-inquirers:
+          type: array
+          description: Lista de últimas entidades que consultaron al bureau.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-recent-inquirer-data' 
+        summarized-variables:
+          type: array
+          description: Variables sumarizadas del perfil crediticio.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-summarized-variable-data'    
+        situation-report:
+          type: object
+          properties:
+            twelve-months:
+              type: object
+              description: "Conteo de situaciones BCRA en los últimos 12 meses."
+              properties:
+                level-3-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 3.
+                level-4-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 4.
+                level-5-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 5.
+            six-months:
+              type: object
+              description: "Conteo de situaciones BCRA en los últimos 6 meses."
+              properties:
+                level-2-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 2.
+                level-3-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 3.
+                level-4-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 4.
+                level-5-count:
+                  type: integer
+                  format: int32
+                  nullable: true
+                  example: null
+                  description: Cantidad de meses en situación 5.
+            date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Fecha del reporte de situaciones (fl — semántica a confirmar con SIISA).
+        active-loan:
+          type: object
+          properties:
+            internal-operation:
+              $ref: '#/components/schemas/operation-group'
+            other-institutions:
+              $ref: '#/components/schemas/operation-group'
+        canceled-loan:
+          type: object
+          properties:
+            internal-operation:
+              $ref: '#/components/schemas/operation-group'
+            other-institutions:
+              $ref: '#/components/schemas/operation-group'    
+        cash-flows:
+          type: array
+          description: Información de cashflow BAC mensual.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-cash-flow-data'   
+        bac-query-number:
+          type: object
+          properties:
+            query-number:
+              type: integer
+              format: int32
+              nullable: true
+              example: null
+              description: Número identificador de la consulta BAC.
+        tax-statuses:
+          type: array
+          description: Situación tributaria del contribuyente (autónomos y monotributistas).
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-tax-status-data'   
+        employments:
+          type: array
+          description: Segunda instancia de registros laborales (CUIT y razón social).
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-employment-data'    
+        arba-lawsuits:
+          type: object
+          properties: 
+            tax-payer-type:
+              type: string
+              nullable: true
+              example: null
+              description: Tipo impuesto
+            start-date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Fecha inicio
+            amount:
+              type: string
+              pattern: '^\d+\.\d+$'
+              nullable: true
+              example: "0.00"
+              description: Importe
+        fiscal-risk:
+          type: object
+          properties: 
+            period-start-date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Periodo Fecha desde
+            period-end-date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Periodo Fecha hasta
+            occurrence-date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Fecha ocurrencia
+            province-name:
+              type: string
+              nullable: true
+              example: null
+              description: Provincia
+        bcra-historical-situations:
+          type: array
+          description: Situaciones crediticias históricas en el BCRA.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-bcra-historical-situation-data'      
+        scorings:
+          type: array
+          description: Lista de scores crediticios calculados por el bureau.
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-scoring-data'
+       
+
+# ══════════════════════════════════════════════════════════════════════
+# SCORINGS
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-scoring-data:
+      type: object
+      properties:
+        type:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Tipo de score (campo score del backend SIISA).
+        model-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código del modelo de scoring utilizado.
+        value:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Valor numérico del score.
+
+# ══════════════════════════════════════════════════════════════════════
+# PERSONAS Y DUPLICADOS
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-duplicated-party-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL de la persona duplicada.
+        document-type:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre del tipo de documento.
+        document-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de documento de identidad.
+        full-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido y nombre completos.
+        gender:
+          type: string
+          nullable: true
+          enum: 
+            - "M"
+            - "F"
+          example: "M"
+          description: Sexo de la persona.
+        birth-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de nacimiento.
+
+    get-retrieve-siisa-person-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL de la persona.
+        document-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de documento de identidad.
+        full-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido y nombre completos.
+        gender:
+          type: string
+          nullable: true
+          enum: 
+            - "M"
+            - "F"
+          example: "M"
+          description: Sexo de la persona.
+        age:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Edad de la persona en años.
+        birth-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de nacimiento.
+        last-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido de la persona.
+        first-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de pila de la persona.
+        is-deceased:
+          type: boolean
+          example: false
+          description: Indica si la persona está fallecida.
+
+
+# ══════════════════════════════════════════════════════════════════════
+# DOMICILIO Y TELÉFONO
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-address-data:
+      type: object
+      properties:
+        street-name:
+          type: string
+          nullable: true
+          example: null
+          description: Dirección del domicilio.
+        town-name:
+          type: string
+          nullable: true
+          example: null
+          description: Localidad del domicilio.
+        postal-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código postal del domicilio.
+        province-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de la provincia.
+
+    get-retrieve-siisa-phone-data:
+      type: object
+      properties:
+        area-code:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Prefijo telefónico.
+        number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de teléfono.
+# ══════════════════════════════════════════════════════════════════════
+# FAMILIARES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-relative-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL del familiar.
+        document-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de documento del familiar.
+        full-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido y nombre del familiar.
+        gender:
+          type: string
+          nullable: true
+          enum: 
+            - "M"
+            - "F"
+          example: "M"
+          description: Sexo de la persona.
+        birth-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de nacimiento del familiar.
+        age:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Edad del familiar en años.
+# ══════════════════════════════════════════════════════════════════════
+# EMPLEADORES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-employer-data:
+      type: object
+      properties:
+        individual-taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL del empleador.
+        business-taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIT del empleador.
+        start-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de ingreso al empleador.
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social del empleador.
+        street-name:
+          type: string
+          nullable: true
+          example: null
+          description: Domicilio del empleador.
+        postal-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código postal del empleador.
+        town-name:
+          type: string
+          nullable: true
+          example: null
+          description: Localidad del empleador.
+        province-name:
+          type: string
+          nullable: true
+          example: null
+          description: Provincia del empleador.
+
+# ══════════════════════════════════════════════════════════════════════
+# REGISTROS LABORALES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-employment-record-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIT del empleador (campo cuit del backend SIISA)
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social del empleador
+        seniority-description:
+          type: string
+          nullable: true
+          example: null
+          description: Antigüedad en meses.
+        sector-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre del sector laboral
+        activity-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de la actividad laboral.
+        full-activity-description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripción completa de la actividad laboral.
+        full-activity-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código completo de la actividad laboral.
+        phone-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de teléfono del empleador.
+        street-name:
+          type: string
+          nullable: true
+          example: null
+          description: Dirección del empleador.
+        is-previous-employer:
+          type: boolean
+          example: false
+          description: Indica si es un empleador anterior.
+        risk-score-value:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Puntaje de riesgo del empleador (pc).
+        is-under-quarantine:
+          type: boolean
+          example: true
+          description: Estado de cuarentena de la nómina salarial (pcCuarentena)
+        quarantine-impact-rate:
+          type: string
+          pattern: '^[0-9]{0,15}(\.[0-9]{1,2})?$'
+          nullable: true
+          example: "0.00"
+          description: Tasa de caída por cuarentena de la nómina (pcCuarentenaCaida).
+        start-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de ingreso al empleo.
+        has-irregularities:
+          type: boolean
+          example: true
+          description: Indica si el empleador registra irregularidades (Irregularidades)
+        sector-quarantine-status:
+          type: string
+          nullable: true
+          example: null
+          description: Estado de cuarentena por sector laboral (pcCuarentenaSector).
+        sector-quarantine-impact-rate:
+          type: string
+          pattern: '^[0-9]{0,15}(\.[0-9]{1,2})?$'
+          nullable: true
+          example: "0.00"
+          description: Tasa de caída en cuarentena por sector (pcCuarentenaCaidaSector)
+
+# ══════════════════════════════════════════════════════════════════════
+# MOROSIDADES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-delinquency-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL de la persona morosa
+        document-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de documento de la persona morosa.
+        full-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido y nombre de la persona morosa.
+        originating-institution-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de la entidad originante de la morosidad.
+        category-code:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Código de categoría de la morosidad.
+        category-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de la categoría de morosidad.
+        period:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Período de la morosidad en formato AAAAMM
+        originating-institution-id:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Identificador de la entidad originante.
+
+    get-retrieve-siisa-historical-delinquency-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL de la persona.
+        document-number:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Número de documento.
+        full-name:
+          type: string
+          nullable: true
+          example: null
+          description: Apellido y nombre.
+        originating-institution-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de la entidad originante.
+        category-code:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Código de categoría.
+        category-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre de la categoría.
+        period:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Período en formato AAAAMM.
+        originating-institution-id:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Identificador de la entidad.
+
+# ══════════════════════════════════════════════════════════════════════
+# MOROSIDADES BCRA
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-bcra-delinquency-data:
+      type: object
+      properties:
+        origin:
+          type: string
+          nullable: true
+          example: null
+          description: Origen de la información BCRA.
+        bcra-originating-institution-id:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Identificador de la entidad en BCRA.
+        bcra-originating-institution-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social de la entidad BCRA.
+        credit-situation:
+          type: integer
+          format: int32
+          nullable: true
+          enum: 
+            - 1 #Normal
+            - 2 #Riesgo bajo
+            - 3 #Riesgo medio
+            - 4 #Riesgo alto
+            - 5 #Irrecuperable
+          example: 1  
+          description: Situación crediticia en BCRA 
+        situation-id:
+          type: integer
+          format: int32
+          nullable: true
+          example: 1  
+          description: Identificador de la situación crediticia.
+        amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto de la deuda en miles de pesos
+        period:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Período de la información en formato AAAAMM.
+        status-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de estado de la situación.
+        source-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código de fuente de la información.
+        has-mandatory-recategorization:
+          type: boolean
+          example: false
+          description: Indica si aplica recategorización obligatoria (recategorizacionObligatoria).
+        legal-situation-name:
+          type: string
+          nullable: true
+          example: null
+          description: Descripción de la situación jurídica
+        delay-days-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad de días de atraso (diasAtraso)
+
+    get-retrieve-siisa-bcra-historical-delinquency-data:
+      type: object
+      properties:
+        origin:
+          type: string
+          nullable: true
+          example: null
+          description: Origen de la información.
+        bcra-originating-institution-id:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Identificador de la entidad en BCRA.
+        bcra-originating-institution-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social de la entidad.
+        credit-situation:
+          type: integer
+          format: int32
+          nullable: true
+          enum: 
+            - 1 #Normal
+            - 2 #Riesgo bajo
+            - 3 #Riesgo medio
+            - 4 #Riesgo alto
+            - 5 #Irrecuperable
+          example: 1  
+          description: Situación crediticia en BCRA 
+        situation-id:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Identificador de la situación.
+        amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto histórico de la deuda en miles de pesos.
+        period-code:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Período en formato AAAAMM.
+        status-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de estado.
+        source-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código de fuente.
+
+# ══════════════════════════════════════════════════════════════════════
+# CHEQUES BCRA
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-bcra-cheq-data:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad total de cheques rechazados.
+
+    get-retrieve-siisa-bcra-cheq-detail-data:
+      type: object
+      properties:
+        cheq-number:
+          type: string
+          nullable: true
+          example: null
+          description: Número del cheque rechazado.
+        rejection-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de rechazo del cheque.
+        amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto del cheque rechazado.
+        is-under-review:
+          type: boolean
+          example: false
+          description: Indica si el cheque está en revisión
+        is-judicial:
+          type: boolean
+          example: false
+          description: Indica si el cheque tiene carácter judicial
+
+# ══════════════════════════════════════════════════════════════════════
+# CONSULTAS
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-inquiry-data:
+      type: object
+      properties:
+        day-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en el día.
+        week-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en la semana.
+        month-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en el mes.
+        three-months-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en los últimos 3 meses.
+        six-months-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en los últimos 6 meses.
+        year-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en el último año.
+        two-years-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Consultas realizadas en los últimos 2 años.
+        institution:
+          $ref: '#/components/schemas/inquiry-period-counts'
+        distinct-entities:
+          $ref: '#/components/schemas/inquiry-period-counts'
+        customer-access:
+          $ref: '#/components/schemas/inquiry-period-counts'
+        rectification:
+          $ref: '#/components/schemas/inquiry-period-counts'
+
+    inquiry-period-counts:
+      type: object
+      description: "Contadores por período para una categoría específica de consultas."
+      properties:
+        day-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en el día.
+        week-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en la semana.
+        month-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en el mes.
+        three-months-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en 3 meses.
+        six-months-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en 6 meses.
+        year-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en el año.
+        two-years-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad en 2 años.
+
+# ══════════════════════════════════════════════════════════════════════
+# FRAUDE
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-fraud-data:
+      type: object
+      properties:
+        file-number:
+          type: string
+          nullable: true
+          example: null
+          description: Número de ficha de fraude (NRO_FICHA)
+        operation-type:
+          type: string
+          nullable: true
+          example: null
+          description: Tipo de operación involucrada en el fraude
+        document:
+          type: object
+          properties:
+            type:
+              type: string
+              nullable: true
+              example: null
+              description: Tipo de documentación presentada
+            version:
+              type: string
+              nullable: true
+              example: null
+              description: Versión de la documentación
+            date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Fecha de la alerta de fraude
+
+# ══════════════════════════════════════════════════════════════════════
+# MODELOS SES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-socio-economic-model-data:
+      type: object
+      properties:
+        level:
+          type: object
+          properties:
+            category-id:
+              type: integer
+              format: int32
+              nullable: true
+              example: null
+              description: Identificador de la categoría (idCat).
+            category-name:
+              type: string
+              nullable: true
+              example: null
+              description: Nombre de la categoría (nombreCat).
+            model-id:
+              type: integer
+              format: int32
+              nullable: true
+              example: null
+              description: Identificador del modelo (idModelo)
+            model-name:
+              type: string
+              nullable: true
+              example: null
+              description: Nombre del modelo (nombreModelo).
+            max-amount:
+              type: string
+              pattern: '^\d+\.\d+$'
+              nullable: true
+              example: "0.00"
+              description: Monto máximo de la categoría.
+            average-amount:
+              type: string
+              pattern: '^\d+\.\d+$'
+              nullable: true
+              example: "0.00"
+              description: Monto promedio de la categoría
+            min-amount:
+              type: string
+              pattern: '^\d+\.\d+$'
+              nullable: true
+              example: "0.00"
+              description: Monto mínimo de la categoría.
+
+# ══════════════════════════════════════════════════════════════════════
+# CONCURSOS Y QUIEBRAS
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-insolvency-proceeding-data:
+      type: object
+      properties:
+        defendant-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre del demandado.
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIL del demandado.
+        status-description:
+          type: string
+          nullable: true
+          example: null
+          description: Tipo de proceso judicial (concurso preventivo, quiebra, etc.).
+        registration-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de registro en la fuente (fechaFuente).
+        case-number:
+          type: string
+          nullable: true
+          example: null
+          description: Número de expediente judicial.
+        jurisdiction:
+          type: string
+          nullable: true
+          example: null
+          description: Jurisdicción del proceso judicial.
+        receiver-name:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre del síndico designado.
+        opening-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de apertura del concurso preventivo (ApConcursoPreventivo)
+        verification-status:
+          type: string
+          nullable: true
+          example: null
+          description: Estado de verificación del proceso.
+        individual-report-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha del informe individual (Art. 35 Ley 24.522).
+        general-report-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha del informe general (Art. 39 Ley 24.522).
+        informative-hearing-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de la audiencia informativa.
+
+# ══════════════════════════════════════════════════════════════════════
+# VALIDACIONES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-validation-data:
+      type: object
+      properties:
+        question:
+          type: object
+          properties:
+            id:
+              type: string
+              nullable: true
+              example: null
+              description: Identificador de la pregunta.
+            description:
+              type: string
+              nullable: true
+              example: null
+              description: Texto de la pregunta de validación.
+        options:
+          type: array
+          maxItems: 5
+          description: Opciones de respuesta (hasta 5 opciones).
+          items:
+            $ref: '#/components/schemas/get-retrieve-siisa-validation-options-data'
+        correct-answer:
+          type: string
+          nullable: true
+          example: null
+          description: Opción correcta de la pregunta
+          
+          
+    get-retrieve-siisa-validation-options-data:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+          example: null
+          description: Texto de la opción de respuesta.
+        
+
+# ══════════════════════════════════════════════════════════════════════
+# ACTIVIDADES CREDITICIAS (OyCs)
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-credit-activity-data:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad de actividades crediticias.
+          
+# ══════════════════════════════════════════════════════════════════════
+# ÚLTIMOS CONSULTANTES
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-recent-inquirer-data:
+      type: object
+      properties:
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social de la entidad consultante.
+        last-inquiry-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de la última consulta realizada.
+        total-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Total de consultas realizadas por esta entidad
+
+# ══════════════════════════════════════════════════════════════════════
+# VARIABLES SUMARIZADAS
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-summarized-variable-data:
+      type: object
+      properties:
+        current-situation:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Situación crediticia actual (1 a 5).
+        twelve-months-situation:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Situación crediticia máxima en los últimos 12 meses.
+        twenty-four-months-situation:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Situación crediticia máxima en los últimos 24 meses.
+        total-commitment:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Compromiso total de deuda.
+        total-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto total de deuda.
+        bcra-first-registration-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Primera fecha de registro en BCRA (minFechaBcra)
+        bcra-last-update-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Última actualización en BCRA (maxFechaBcra).
+        cheq-taxpayers-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: CUITs con cheques rechazados asociados.
+        six-months-situation:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Situacion 6 meses  
+        employment-status:
+          type: object
+          properties:
+            is-employee:
+              type: boolean
+              example: true
+              description: Indica si la persona es empleado en relación de dependencia.
+            has-six-months-history:
+              type: boolean
+              example: true
+              description: Indica si fue empleado en relación de dependencia en los últimos 6 meses
+            has-twelve-months-history:
+              type: boolean
+              example: true
+              description: Indica si fue empleado en relación de dependencia en los últimos 12 meses
+            is-retired:
+              type: boolean
+              example: true
+              description: Indica si la persona es jubilada o pensionada.
+            is-monotax-contributor:
+              type: boolean
+              example: true
+              description: Indica si la persona es monotributista.
+            is-self-employed:
+              type: boolean
+              example: true
+              description: Indica si la persona es autónoma.
+            monotax-category:
+              type: string
+              nullable: true
+              example: null
+              description: Categoría de monotributo actual.
+            registration-date:
+              type: string
+              format: date
+              nullable: true
+              example: null
+              description: Fecha de inscripción tributaria
+        last-twelve-maximum-situations:
+          type: array
+          maxItems: 12
+          description: Situación máxima por cada uno de los últimos 12 meses.
+          items:
+            $ref: '#/components/schemas/summarized-variable-last-situations-data'
+        last-twelve-institution-maximum-situations:
+          type: array
+          maxItems: 12
+          description: Situación máxima por cada uno de los últimos 12 meses de la entidad
+          items:
+            $ref: '#/components/schemas/summarized-variable-last-situations-data'
+          
+
+    summarized-variable-last-situations-data:
+      type: object
+      properties:
+        index:
+          type: integer
+          format: int32
+          nullable: true
+          description: indice de 1 a 12
+        value:
+          type: integer
+          format: int32
+          nullable: true
+          description: Índice del mes (1=mes más reciente, 12=mes más antiguo)
+
+# ══════════════════════════════════════════════════════════════════════
+# CRÉDITOS VIGENTES Y CANCELADOS
+# ══════════════════════════════════════════════════════════════════════
+
+    operation-group: #ok
+      type: object
+      properties:
+        directed-credit:
+          $ref: '#/components/schemas/credit-line'
+        cash-loan:
+          $ref: '#/components/schemas/credit-line'
+        credit-card:
+          $ref: '#/components/schemas/credit-line'
+
+    credit-line: #ok
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Cantidad de operaciones de la línea.
+        total-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto total de las operaciones.
+        balance-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Saldo pendiente de las operaciones.
+
+# ══════════════════════════════════════════════════════════════════════
+# CASHFLOW BAC
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-cash-flow-data:
+      type: object
+      properties:
+        month-count:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Número de mes del cashflow.
+        own-transactions-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto de transacciones propias del mes.
+        internal-operation-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto de operaciones de terceros del mes.
+        total-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto total del cashflow del mes.
+        paid-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto pagado en el mes.
+        unpaid-amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto impago del mes.
+
+    
+
+# ══════════════════════════════════════════════════════════════════════
+# SITUACIÓN TRIBUTARIA (AUTÓNOMOS / MONOTRIBUTISTAS)
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-tax-status-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIT del contribuyente.
+        is-self-employed:
+          type: boolean
+          example: true
+          description: Indica si la persona es autónoma.
+        income-tax-payer-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código de situación ante el impuesto a las ganancias.
+        iva-tax:
+          type: string
+          nullable: true
+          example: null
+          description: Código de situación ante el impuesto al IVA.
+        monotax-category-code:
+          type: string
+          nullable: true
+          example: null
+          description: Código de categoría de monotributo.
+        is-society-member:
+          type: boolean
+          example: false
+          description: Indica si la persona es integrante de una sociedad.
+        is-employer:
+          type: boolean
+          example: false
+          description: Indica si la persona es empleadora.
+
+    get-retrieve-siisa-employment-data:
+      type: object
+      properties:
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIT del empleador.
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social del empleador.
+
+# ══════════════════════════════════════════════════════════════════════
+# SITUACIONES BCRA HISTÓRICAS
+# ══════════════════════════════════════════════════════════════════════
+    get-retrieve-siisa-bcra-historical-situation-data:
+      type: object
+      properties:
+        origin:
+          type: string
+          nullable: true
+          example: null
+          description: Origen de la información.
+        financial-institution-id:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Identificador de la entidad financiera (IDEntidad).
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: Razón social de la entidad.
+        credit-situation:
+          type: integer
+          format: int32
+          nullable: true
+          enum: 
+            - 1 #Normal
+            - 2 #Riesgo bajo
+            - 3 #Riesgo medio
+            - 4 #Riesgo alto
+            - 5 #Irrecuperable
+          example: 1  
+          description: Situación crediticia histórica.
+        situation-id:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: Identificador de la situación.
+        amount:
+          type: string
+          pattern: '^\d+\.\d+$'
+          nullable: true
+          example: "0.00"
+          description: Monto histórico en miles de pesos.
+        reference-period:
+          type: string
+          pattern: '^\d*$'
+          nullable: true
+          example: null
+          description: Período de referencia en formato AAAAMM.
+        status-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Fecha de estado de la situación histórica.
+        source:
+          type: string
+          nullable: true
+          example: null
+          description: Fuente de la información.
+  
+# ══════════════════════════════════════════════════════════════════════
+# GET- RESONSE - NOSIS
+# ══════════════════════════════════════════════════════════════════════
+    
+    get-retrieve-nosis-response:
+      type: object
+      properties: 
+        taxpayer-number:
+          type: string
+          pattern: '^(|(20|23|24|25|26|27|30|33|34)\d{9})$'
+          nullable: true
+          example: null
+          description: CUIT/CUIL/CDI
+        legal-name:
+          type: string
+          nullable: true
+          example: null
+          description: RazonSocial
+        gender:
+          type: string
+          nullable: true
+          enum: 
+            - "M"
+            - "F"
+          example: "M"
+          description: Sexo
+        variable-group-id:
+          type: string
+          nullable: true
+          example: null
+          description: VR
+        acceptance-criteria-id:
+          type: integer
+          format: int32
+          nullable: true
+          example: null
+          description: CDA
+        external-reference-id:
+          type: string
+          nullable: true
+          example: null
+          description: FEX
+        is-manager-report-included:
+          type: boolean
+          example: true
+          description: Informe
+        is-reduced-response:
+          type: boolean
+          example: true
+          description: Respuesta reducida
+        characteristics:
+          type: array
+          description: Lista de variables.
+          items:
+            $ref: '#/components/schemas/get-retrieve-nosis-response-characteristics-data'  
+
+
+    get-retrieve-nosis-response-characteristics-data:
+      type: object
+      properties:
+        mnemonic-code:
+          type: string
+          nullable: true
+          example: null
+          description: Nombre
+        value:
+          type: string
+          nullable: true
+          example: null
+          description: Valor
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Descripcion
+        detail:
+          type: string
+          nullable: true
+          example: null
+          description: Detalle
+        type:
+          type: string
+          nullable: true
+          example: null
+          description: Tipo
+        updated-date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: FechaAct
+          
+
+# ══════════════════════════════════════════════════════════════════════
+# ERROR
+# ══════════════════════════════════════════════════════════════════════
+    errors:
+      type: object
+      description: "Detalle de un error individual."
+      properties:
+        ErrorCode:
+          type: string
+          description: "Código específico del error."
+          example: "409"
+        Message:
+          type: string
+          description: "Mensaje descriptivo del error."
+          example: "No se encontraron datos para el CUIL consultado."
+        Path:
+          type: string
+          description: "Path del endpoint que generó el error."
+          example: "/v1/bureau-assessment-information/retrieve/siisa"
+
+    error:
+      type: object
+      description: "Estructura estándar de error de la API."
+      properties:
+        Code:
+          type: string
+          description: "Código de error."
+          example: "ER-409"
+        Id:
+          type: string
+          description: "Identificador único del error."
+          example: "d769836d-4d5c-4c0e-9db8-70c684a66d3f"
+        Message:
+          type: string
+          description: "Descripción del error."
+          example: "409 Conflict: Operation violates a business rule."
+        Errors:
+          type: array
+          description: "Lista de errores detallados."
+          items:
+            $ref: '#/components/schemas/errors'
+
+# ══════════════════════════════════════════════════════════════════════
+# RESPONSES REUTILIZABLES
+# ══════════════════════════════════════════════════════════════════════
+  responses:
+    badRequest:
+      description: "Solicitud inválida — parámetros incorrectos o faltantes."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    unauthorized:
+      description: "No autorizado — token inválido o expirado."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    notFound:
+      description: "Recurso no encontrado."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    tooManyRequests:
+      description: "Demasiadas solicitudes — límite de rate excedido."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    internalServerError:
+      description: "Error interno del servidor."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    badGateway:
+      description: "Error de gateway — el backend no respondió correctamente."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    serviceUnavailable:
+      description: "Servicio no disponible temporalmente."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    gatewayTimeout:
+      description: "Timeout del gateway — el backend no respondió a tiempo."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+# ══════════════════════════════════════════════════════════════════════
+# EXAMPLES
+# ══════════════════════════════════════════════════════════════════════
+  examples:
+    200-get-retrieve-siisa-response:
+      value:
+        document-number: "12345678"
+        taxpayer-number: "20123456789"
+        full-name: "GARCIA JUAN CARLOS"
+        is-credit-history-requested: true
+        is-employment-data-requested: true
+        is-valid-user: true
+        has-credit-bureau-search: true
+        scorings:
+          - 
+            type: 1
+            model-code: "MOD-001"
+            value: "750"
+        duplicated-parties: []
+        persons:
+          - 
+            taxpayer-number: "20123456789"
+            document-number: "12345678"
+            full-name: "GARCIA JUAN CARLOS"
+            gender: "M"
+            age: 45
+            birth-date: "1980-05-15"
+            last-name: "GARCIA"
+            first-name: "JUAN CARLOS"
+            is-deceased: false
+        addresses:
+          - 
+            street-name: "AV CORRIENTES 1234"
+            town-name: "CIUDAD AUTONOMA DE BUENOS AIRES"
+            postal-code: "1043"
+            province-name: "BUENOS AIRES"
+        phones:
+          - 
+            area-code: "011"
+            number: "45678901"
+        relatives: []
+        employers:
+          - 
+            individual-taxpayer-number: "20345678901"
+            business-taxpayer-number: "30712345678"
+            start-date: "2015-03-01"
+            legal-name: "EMPRESA SA"
+            street-name: "AV LIBERTADOR 500"
+            postal-code: "1001"
+            town-name: "BUENOS AIRES"
+            province-name: "BUENOS AIRES"
+        employment-records:
+          - 
+            taxpayer-number: "30712345678"
+            legal-name: "EMPRESA SA"
+            seniority-description: Mas de 12 meses
+            sector-name: "SERVICIOS"
+            activity-name: "COMERCIO AL POR MAYOR"
+            full-activity-description: "COMERCIO AL POR MAYOR DE PRODUCTOS ALIMENTICIOS"
+            full-activity-code: "461000"
+            phone-number: "01145678901"
+            street-name: "AV CORRIENTES 500"
+            is-previous-employer: false
+            risk-score-value: "850.00"
+            is-under-quarantine: false
+            quarantine-impact-rate: "0.00"
+            start-date: "2015-03-01"
+            has-irregularities: false
+            sector-quarantine-status: "NO"
+            sector-quarantine-impact-rate: "0.00"
+        delinquencies: []
+        historical-delinquencies: []
+        bcra-delinquencies:
+          - 
+            origin: "BCRA"
+            bcra-originating-institution-id: "0007"
+            bcra-originating-institution-name: "BANCO NACION ARGENTINA"
+            credit-situation: 1
+            situation-id: 1
+            amount: "150000.00"
+            period: "202503"
+            status-date: "2025-03-01"
+            source-code: "BCRA"
+            has-mandatory-recategorization: false
+            legal-situation-name: "NORMAL"
+            delay-days-count: 0
+        bcra-historical-delinquencies: []
+        bcra-cheqs:
+          - 
+            count: 0
+        bcra-cheq-details: []
+        inquiries:
+          - 
+            day-count: 1
+            week-count: 3
+            month-count: 3
+            three-months-count: 10
+            six-months-count: 18
+            year-count: 30
+            two-years-count: 55
+            institution:
+              day-count: 0
+              week-count: 1
+              month-count: 2
+              three-months-count: 4
+              six-months-count: 7
+              year-count: 12
+              two-years-count: 20
+            distinct-entities:
+              day-count: 0
+              week-count: 1
+              month-count: 2
+              three-months-count: 3
+              six-months-count: 5
+              year-count: 8
+              two-years-count: 15
+            customer-access:
+              day-count: 0
+              week-count: 0
+              month-count: 1
+              three-months-count: 2
+              six-months-count: 4
+              year-count: 7
+              two-years-count: 12
+            rectification:
+              day-count: 0
+              week-count: 0
+              month-count: 0
+              three-months-count: 0
+              six-months-count: 0
+              year-count: 1
+              two-years-count: 2
+        frauds: []
+        socio-economic-models:
+          - level:
+              category-id: 3
+              category-name: "NIVEL MEDIO"
+              model-id: 1
+              model-name: "MODELO SOCIOECONOMICO BASICO"
+              max-amount: "500000.00"
+              average-amount: "250000.00"
+              min-amount: "50000.00"
+        insolvency-proceedings: []
+        validations: []
+        credit-activities:
+          - 
+            count: 3
+        recent-inquirers:
+          - 
+            legal-name: "BANCO MACRO SA"
+            last-inquiry-date: "2025-03-15"
+            total-count: 4
+        summarized-variables:
+          - 
+            current-situation: 1
+            twelve-months-situation: 1
+            twenty-four-months-situation: 1
+            six-months-situation: 1
+            total-commitment: "350000.00"
+            total-amount: "350000.00"
+            bcra-first-registration-date: "2010-01-01"
+            bcra-last-update-date: "2025-03-01"
+            cheq-taxpayers-count: null
+            employment-status:
+              is-employee: true
+              has-six-months-history: true
+              has-twelve-months-history: true
+              is-retired: false
+              is-monotax-contributor: false
+              is-self-employed: false
+              monotax-category: null
+              registration-date: "2005-08-10"
+            last-twelve-maximum-situations:
+              - 
+                index: 1
+                value: 1
+              - 
+                index: 2
+                value: 1
+        situation-report:
+          twelve-months:
+            level-3-count: 0
+            level-4-count: 0
+            level-5-count: 0
+          six-months:
+            level-2-count: 0
+            level-3-count: 0
+            level-4-count: 0
+            level-5-count: 0
+          date: "2025-03-01"
+        active-loan:
+          internal-operation:
+            directed-credit:
+              count: 1
+              total-amount: "200000.00"
+              balance-amount: "150000.00"
+            cash-loan:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+            credit-card:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+          other-institutions:
+            directed-credit:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+            cash-loan:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+            credit-card:
+              count: 1
+              total-amount: "80000.00"
+              balance-amount: "60000.00"
+        canceled-loan:
+          internal-operation:
+            directed-credit:
+              count: 2
+              total-amount: "400000.00"
+              balance-amount: "0.00"
+            cash-loan:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+            credit-card:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+          other-institutions:
+            directed-credit:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+            cash-loan:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+            credit-card:
+              count: 0
+              total-amount: "0.00"
+              balance-amount: "0.00"
+        cash-flows:
+          - 
+            month-count: 3
+            own-transactions-amount: "80000.00"
+            internal-operation-amount: "20000.00"
+            total-amount: "100000.00"
+            paid-amount: "95000.00"
+            unpaid-amount: "5000.00"
+        bac-query-number:
+          query-number: null
+        tax-statuses:
+          - 
+            taxpayer-number: "20123456789"
+            is-self-employed: false
+            income-tax-payer-code: "IN"
+            iva-tax: "RI"
+            monotax-category-code: ""
+            is-society-member: false
+            is-employer: false
+        employments:
+          - 
+            taxpayer-number: "30712345678"
+            legal-name: "EMPRESA SA"
+        arba-lawsuits: {}
+        fiscal-risk: {}
+        bcra-historical-situations:
+          - 
+            origin: "BCRA"
+            financial-institution-id: "0007"
+            legal-name: "BANCO NACION ARGENTINA"
+            credit-situation: 1
+            situation-id: 1
+            amount: "100000.00"
+            reference-period: "202212"
+            status-date: "2022-12-01"
+            source: "BCRA"
+
+    409-get-retrieve-siisa-error:
+      value:
+        Code: "ER-409"
+        Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f"
+        Message: "409 Conflict: Operation violates a business rule."
+        Errors:
+          - ErrorCode: "409"
+            Message: "No se encontraron datos para el CUIL consultado."
+            Path: "/v1/bureau-assessment-information/retrieve/siisa"
+            
+    200-get-retrieve-nosis-response:
+      value:
+        taxpayer-number: "30715190342"
+        legal-name: null
+        gender: "M"
+        variable-group-id: "5"
+        acceptance-criteria-id: null
+        external-reference-id: null
+        is-manager-report-included: true
+        is-reduced-response: false
+        characteristics: 
+          -
+            mnemonic-code: "VI_RazonSocial"
+            value: "MALUA SRL"
+            description: "Razón Social"
+            type: "TEXTO"
+            updated-date: "2026-03-10"
+          -
+            mnemonic-code: "VI_Apellido"
+            value: ""
+            description: "Apellido"
+            detail: "Solo para individuos."
+            type: "TEXTO"
+            updated-date: "2026-03-10"
+          -
+            mnemonic-code: "VI_Nombre"
+            value: ""
+            description: "mnemonic-code"
+            detail: "Solo para individuos."
+            type: "TEXTO"
+            updated-date: "2026-03-10"
+          -
+            mnemonic-code: "VI_Identificacion"
+            value: "30715190342"
+            description: "CUIT / CUIL / CDI"
+            type: "DOCUMENTO"
+            updated-date: "2026-03-10"
+
+
+    409-get-retrieve-nosis-error:
+      value:
+        Code: "ER-409"
+        Id: "d769836d-4d5c-4c0e-9db8-70c684a66d3f"
+        Message: "409 Conflict: Operation violates a business rule."
+        Errors:
+          - ErrorCode: "409"
+            Message: "No se encontraron datos para el CUIL consultado."
+            Path: "/v1/bureau-assessment-information/retrieve/nosis"
+            
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
